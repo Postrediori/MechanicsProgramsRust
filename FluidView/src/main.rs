@@ -1,7 +1,14 @@
 mod fluid_func;
 mod graph_widget;
 
-use fltk::{*, prelude::*};
+use fltk::{
+    app,
+    button,
+    input,
+    prelude::{DisplayExt, GroupExt, InputExt, WidgetBase, WidgetExt},
+    text,
+    window
+};
 
 fn main() {
     let a = app::App::default();

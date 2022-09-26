@@ -1,4 +1,10 @@
-use fltk::{*, prelude::*};
+use fltk::{
+    draw,
+    enums,
+    prelude::{WidgetBase, WidgetExt},
+    widget,
+    widget_extends
+};
 
 use std::cell::RefCell;
 use std::rc::Rc;
