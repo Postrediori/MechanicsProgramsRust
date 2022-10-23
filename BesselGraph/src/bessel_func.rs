@@ -54,11 +54,11 @@ pub fn y0_2(x: f64) -> f64 {
 
     let dm: f64 = x * x / 4.0;
     let mut m: f64 = dm;
-    let mut n: i64 = 1;
+    let mut n: f64 = 1.0;
     let mut p: f64 = 1.0;
 
     for dn in 2..MAX_ITER {
-        let a = p * m / ((n * n) as f64);
+        let a = p * m / (n * n);
         s += a;
         
         if a.abs() < DELTA {
@@ -66,7 +66,7 @@ pub fn y0_2(x: f64) -> f64 {
         }
 
         m *= -dm;
-        n *= dn;
+        n *= dn as f64;
         p += 1.0 / (dn as f64);
     }
 
