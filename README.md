@@ -16,6 +16,12 @@ Graphical solver for fluid flow **&lambda;<sub>1</sub>(q)** and **&lambda;<sub>2
 
 ![FluidView screenshot](images/fluidview.png)
 
+### BesselGraph
+
+Graph plot of Bessel functions of the first kind of 0-th order **J<sub>0</sub>(x)** calculated with two methods: using integration and infinite series.
+
+![BesselGraph screenshot](images/besselgraph.png)
+
 ## Links
 
 * Original utils written in C++ &ndash; https://gitlab.com/Postrediori/OptimizationMethods
