@@ -2,6 +2,11 @@
 
 This is the collection of various applications for mechanics simulations and structural engineering models written in Rust. 
 
+## Dependencies
+
+* Install `cargo`
+* On RedHat-based systems install `libstdc++-static`
+
 ## Contents
 
 ### FluidCalc
