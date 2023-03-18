@@ -145,24 +145,44 @@ impl GraphWidget {
             draw::set_font(enums::Font::Helvetica, 12);
 
             let xmin_str = format!("{:.1}", area.xmin);
-            draw::draw_text(&xmin_str,
+            draw::draw_text2(&xmin_str,
                 get_x(area.xmin),
-                get_y(area.ymin - scale_y * ((MARGIN + TICK_SIZE) as f64)));
+                get_y(area.ymin - scale_y * ((MARGIN + TICK_SIZE) as f64)),
+                0, 0, enums::Align::BottomLeft);
 
             let xmax_str = format!("{:.1}", area.xmax);
-            draw::draw_text(&xmax_str,
+            draw::draw_text2(&xmax_str,
                 get_x(area.xmax),
-                get_y(area.ymin - scale_y * ((MARGIN + TICK_SIZE) as f64)));
+                get_y(area.ymin - scale_y * ((MARGIN + TICK_SIZE) as f64)),
+                0, 0, enums::Align::BottomRight);
 
             let ymin_str = format!("{:.1}", area.ymin);
-            draw::draw_text(&ymin_str,
+            draw::draw_text2(&ymin_str,
                 get_x(area.xmin - scale_x * (MARGIN + TICK_SIZE) as f64),
-                get_y(area.ymin));
+                get_y(area.ymin),
+                0, 0, enums::Align::BottomLeft);
 
             let ymax_str = format!("{:.1}", area.ymax);
-            draw::draw_text(&ymax_str,
+            draw::draw_text2(&ymax_str,
                 get_x(area.xmin - scale_x * (MARGIN + TICK_SIZE) as f64),
-                get_y(area.ymax));
+                get_y(area.ymax),
+                0, 0, enums::Align::TopLeft);
+
+            // Draw labels
+            let x_label = "lambda";
+            let y_label = "q";
+
+            draw::set_font(enums::Font::HelveticaBold, 14);
+
+            draw::draw_text2(&x_label,
+                get_x(area.xmin + ((area.xmax - area.xmin) * 0.5) as f64),
+                get_y(area.ymin - scale_y * ((TICK_SIZE as f64) * 1.5)),
+            0, 0, enums::Align::Center | enums::Align::Top);
+
+            draw::draw_text2(&y_label,
+                get_x(area.xmin - scale_x * (TICK_SIZE as f64) * 1.5),
+                get_y(area.ymin + ((area.ymax - area.ymin) * 0.5) as f64),
+            0, 0, enums::Align::Right);
 
             // Draw plot
             draw::set_draw_color(plot_color);
