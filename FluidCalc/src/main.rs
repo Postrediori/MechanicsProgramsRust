@@ -7,33 +7,56 @@ use fltk::{
     group,
     menu,
     output,
-    prelude::{InputExt, GroupExt, MenuExt, WidgetBase, WidgetExt},
+    prelude::{InputExt, GroupExt, MenuExt, WidgetExt},
     window,
 };
+
+const WIDTH: i32 = 400;
+const HEIGHT: i32 = 500;
 
 fn main() {
     let a = app::App::default();
     
-    let mut wind = window::Window::new(100, 100, 400, 500, "Fluid Flow Dynamics Calculator");
+    let mut wind = window::Window::default()
+        .with_size(WIDTH, HEIGHT).with_label("Fluid Flow Dynamics Calculator");
 
-    let tabs = group::Tabs::new(10, 10, 380, 480, "");
+    let tabs = group::Tabs::default()
+        .with_size(WIDTH - 20, HEIGHT - 20).center_of_parent();
 
     // Group 1: vel -> func calculations
 
-    let group1 = group::Group::new(10, 40, 380, 480, "vel->func");
+    let group1 = group::Group::default()
+        .with_size(tabs.w(), tabs.h() - 30).with_pos(tabs.x(), tabs.y() + 30)
+        .with_label("vel->func");
 
-    let mut in_lambda = input::FloatInput::new(150, 70, 150, 25, "lambda = ");
+    let mut in_lambda = input::FloatInput::default()
+        .with_size(150, 25).with_pos(group1.x() + 140, group1.y() + 30)
+        .with_label("lambda = ");
     let _ = in_lambda.set_value("1.0000");
 
-    let mut btn_calc = button::Button::new(150, 105, 100, 30, "Calculate");
+    let mut btn_calc = button::Button::default()
+        .with_size(100, 30).below_of(&in_lambda, 10)
+        .with_label("Calculate");
 
-    let mut out_tau = output::Output::new(150, 145, 150, 25, "tau = ");
-    let mut out_pi = output::Output::new(150, 175, 150, 25, "pi = ");
-    let mut out_eps = output::Output::new(150, 205, 150, 25, "eps = ");
-    let mut out_q = output::Output::new(150, 235, 150, 25, "q = ");
+    let mut out_tau = output::Output::default()
+        .with_size(150, 25).below_of(&btn_calc, 10)
+        .with_label("tau = ");
+    let mut out_pi = output::Output::default()
+        .with_size(150, 25).below_of(&out_tau, 10)
+        .with_label("pi = ");
+    let mut out_eps = output::Output::default()
+        .with_size(150, 25).below_of(&out_pi, 10)
+        .with_label("eps = ");
+    let mut out_q = output::Output::default()
+        .with_size(150, 25).below_of(&out_eps, 10)
+        .with_label("q = ");
     
-    let mut out_phi = output::Output::new(150, 270, 150, 25, "phi = ");
-    let mut out_y = output::Output::new(150, 300, 150, 25, "y = ");
+    let mut out_phi = output::Output::default()
+        .with_size(150, 25).below_of(&out_q, 10)
+        .with_label("phi = ");
+    let mut out_y = output::Output::default()
+        .with_size(150, 25).below_of(&out_phi, 10)
+        .with_label("y = ");
 
     btn_calc.set_callback(move |_b| {
         let lambda_val = in_lambda.value().parse::<f64>().expect("Not a number!");
@@ -61,9 +84,17 @@ fn main() {
 
     // Group 2: func -> vel calculations
 
-    let group2 =  group::Group::new(10, 40, 380, 480, "func->vel");
+    let group2 =  group::Group::default()
+        .with_size(tabs.w(), tabs.h() - 30).with_pos(tabs.x(), tabs.y() + 30)
+        .with_label("func->vel");
 
-    let mut func_choice = menu::Choice::new(50, 70, 75, 25, "");
+    let mut in_func = input::FloatInput::default()
+        .with_size(150, 25).with_pos(group2.x() + 140, group2.y() + 30)
+        .with_label(" = ");
+    in_func.set_value("1.0000");
+
+    let mut func_choice = menu::Choice::default()
+        .with_size(75, 25).left_of(&in_func, 30);
     func_choice.add_choice("tau");
     func_choice.add_choice("pi");
     func_choice.add_choice("eps");
@@ -72,13 +103,16 @@ fn main() {
     func_choice.add_choice("y");
     func_choice.set_value(0);
 
-    let mut in_func = input::FloatInput::new(150, 70, 150, 25, " = ");
-    in_func.set_value("1.0000");
+    let mut btn_calc2 = button::Button::default()
+        .with_size(100, 30).below_of(&in_func, 10)
+        .with_label("Calculate");
 
-    let mut btn_calc2 = button::Button::new(150, 105, 100, 30, "Calculate");
-
-    let mut out_lambda1 = output::Output::new(150, 145, 150, 25, "lambda1 = ");
-    let mut out_lambda2 = output::Output::new(150, 175, 150, 25, "lambda2 = ");
+    let mut out_lambda1 = output::Output::default()
+        .with_size(150, 25).below_of(&btn_calc2, 10)
+        .with_label("lambda1 = ");
+    let mut out_lambda2 = output::Output::default()
+        .with_size(150, 25).below_of(&out_lambda1, 10)
+        .with_label("lambda2 = ");
 
     btn_calc2.set_callback(move |_b| {
         let func_val: f64 = in_func.value().parse::<f64>().expect("Not a number!");

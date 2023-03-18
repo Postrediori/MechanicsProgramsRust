@@ -5,27 +5,39 @@ use fltk::{
     app,
     button,
     input,
-    prelude::{DisplayExt, GroupExt, InputExt, WidgetBase, WidgetExt},
+    prelude::{DisplayExt, GroupExt, InputExt, WidgetExt},
     text,
     window
 };
+
+const WIDTH: i32 = 700;
+const HEIGHT: i32 = 500;
 
 fn main() {
     let a = app::App::default();
     app::get_system_colors();
 
-    let mut wind = window::Window::new(100, 100, 700, 500, "Fluid Flow Visual Calculator");
+    let mut wind = window::Window::default()
+        .with_size(WIDTH, HEIGHT)
+        .with_label("Fluid Flow Visual Calculator");
 
-    let mut graph = graph_widget::GraphWidget::new(10, 10, 480, 480);
+    let mut graph = graph_widget::GraphWidget::new(10, 10, HEIGHT-20, HEIGHT-20);
 
-    let mut inpq = input::FloatInput::new(575, 10, 90, 25, "q = ");
+    let mut inpq = input::FloatInput::default()
+        .with_size(90, 25).with_pos(WIDTH - 90 - 50, 10)
+        .with_label("q = ");
     inpq.set_value("0.5000");
 
+    let mut btn_calc = button::Button::default()
+        .with_size(90, 25).below_of(&inpq, 10)
+        .with_label("Calculate");
+
     let buffer = text::TextBuffer::default();
-    let mut disp = text::TextDisplay::new(500, 70, 190, 200, "");
+    let mut disp = text::TextDisplay::default()
+        .with_size(190, 200)
+        .with_pos(graph.x()+graph.w()+10, btn_calc.y()+btn_calc.h()+10);
     disp.set_buffer(buffer);
 
-    let mut btn_calc = button::Button::new(500, 40, 90, 25, "Calculate");
     btn_calc.set_callback(move |_b| {
         let q_val: f64 = inpq.value().parse::<f64>().expect("Not a number!");
 
