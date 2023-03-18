@@ -27,6 +27,12 @@ Graph plot of Bessel functions of the first kind of 0-th order **J<sub>0</sub>(x
 
 ![BesselGraph screenshot](images/besselgraph.png)
 
+### MechanicalPendulum
+
+Simple model of a mechanical pendulum.
+
+![MechanicalPendulum screenshot](images/MechanicalPendulum.png)
+
 ## Links
 
 * Original utils written in C++ &ndash; https://gitlab.com/Postrediori/OptimizationMethods
