@@ -6,16 +6,15 @@ use fltk::{
     widget_extends
 };
 
-use crate::bessel_func;
-
-use std::cell::Ref;
 use std::cell::RefCell;
 use std::rc::Rc;
 
-struct Point {
+pub struct Point {
     x: f64,
     y: f64,
 }
+
+pub type PlotPoints = Vec<Point>;
 
 struct Tick {
     begin: Point,
@@ -30,25 +29,44 @@ pub struct Area {
     pub ymax: f64,
 }
 
-pub struct PlotWidget {
-    inner: widget::Widget,
-    area: Rc<RefCell<Area>>
+type PlotFunction = fn(f64) -> f64;
+
+
+#[derive(Clone)]
+pub struct PlotFunctionInfo {
+    pub f: PlotFunction,
+    pub color: enums::Color,
+    pub name: String
 }
 
-fn calc_points(points: &mut Vec<Point>, point_count: i32, area: Ref<Area>, f: fn(f64) -> f64) {
-    let px: f64 = (area.xmax - area.xmin) / (point_count as f64);
-    for i in 0..point_count+1 {
-        let xc: f64 = area.xmin + px * (i as f64);
-        points.push(Point{ x: xc, y: f(xc) });
+impl PlotFunctionInfo {
+    pub fn calc_points(&self, point_count: i32, area: &Area) -> PlotPoints {
+        let mut points: PlotPoints = Vec::new();
+        points.reserve((point_count + 1) as usize);
+        let px: f64 = (area.xmax - area.xmin) / (point_count as f64);
+        for i in 0..point_count+1 {
+            let xc: f64 = area.xmin + px * (i as f64);
+            points.push(Point{ x: xc, y: (self.f)(xc) });
+        }
+        points
     }
+}
+
+pub struct PlotWidget {
+    inner: widget::Widget,
+    area: Rc<RefCell<Area>>,
+    plots: Rc<RefCell<Vec<PlotFunctionInfo>>>
 }
 
 impl PlotWidget {
     pub fn new(x: i32, y: i32, width: i32, height: i32) -> Self {
         let mut inner = widget::Widget::default().with_pos(x, y).with_size(width, height);
 
-        let area = Rc::from(RefCell::from(Area{ xmin: 0.0, xmax: 20.0, ymin: -3.0, ymax: 1.0}));
-        let area_val = area.clone();
+        let area = Area{ xmin: -1.0, xmax: 1.0, ymin: -1.0, ymax: 1.0 };
+        let area = Rc::from(RefCell::from(area));
+
+        let plots: Vec<PlotFunctionInfo> = Vec::new();
+        let plots = Rc::from(RefCell::from(plots));
 
         const MARGIN: i32 = 20;
         const TICK_SIZE: i32 = 10;
@@ -56,25 +74,17 @@ impl PlotWidget {
         let point_count: i32 = 500;
         let tick_count: i32 = 20;
 
-        let bg_color = enums::Color::White;
-        let bounds_color = enums::Color::Black;
-        let ticks_color = enums::Color::Black;
+        const BG_COLOR: enums::Color = enums::Color::White;
+        const BOUNDS_COLOR: enums::Color = enums::Color::Black;
+        const TICKS_COLOR: enums::Color = enums::Color::Black;
+        const AXES_COLOR: enums::Color = enums::Color::Black;
 
-        let plot_color_1 = enums::Color::from_rgb(0xa0, 0, 0);
-        let plot_color_2 = enums::Color::from_rgb(0x99, 0xcc, 0xff);
-        
-        let plot_width_1 = 5;
-        let plot_width_2 = 2;
+        let area_val = area.clone();
+        let plots_val = plots.clone();
 
         inner.draw(move |i| {
             let area = area_val.borrow();
-
-            // Calculate plot points
-            let mut point_vec_1: Vec<Point> = Vec::new();
-            calc_points(&mut point_vec_1, point_count, area_val.borrow(), bessel_func::y0_1);
-
-            let mut point_vec_2: Vec<Point> = Vec::new();
-            calc_points(&mut point_vec_2, point_count, area_val.borrow(), bessel_func::y0_2);
+            let plots = plots_val.borrow();
 
             // Calculate pixel scale
             let scale_x: f64 = (area.xmax - area.xmin) / ((i.w() - MARGIN * 2 - TICK_SIZE) as f64);
@@ -115,10 +125,10 @@ impl PlotWidget {
             draw::set_line_style(draw::LineStyle::Solid, 1);
 
             // Clean draw area with backgorund color
-            draw::draw_rect_fill(i.x(), i.y(), i.w(), i.h(), bg_color);
+            draw::draw_rect_fill(i.x(), i.y(), i.w(), i.h(), BG_COLOR);
 
             // Draw bounding box
-            draw::set_draw_color(bounds_color);
+            draw::set_draw_color(BOUNDS_COLOR);
             draw::draw_loop3(
                 get_coord(area.xmin, area.ymin),
                 get_coord(area.xmax, area.ymin),
@@ -126,8 +136,27 @@ impl PlotWidget {
                 get_coord(area.xmin, area.ymax)
             );
 
+            // Draw origin axes (if visible)
+            const AXIS_X: f64 = 0.0;
+            const AXIS_Y: f64 = 0.0;
+            draw::set_draw_color(AXES_COLOR);
+            draw::set_line_style(draw::LineStyle::DashDotDot, 1);
+            
+            if (area.xmin<AXIS_X && AXIS_X<area.xmax) {
+                draw::draw_line(
+                    get_x(AXIS_X), get_y(area.ymin),
+                    get_x(AXIS_X), get_y(area.ymax));
+            }
+
+            if (area.ymin<AXIS_Y && AXIS_Y<area.ymax) {
+                draw::draw_line(
+                    get_x(area.xmin), get_y(AXIS_Y),
+                    get_x(area.xmax), get_y(AXIS_Y));
+            }
+
             // Draw ticks
-            draw::set_draw_color(ticks_color);
+            draw::set_draw_color(TICKS_COLOR);
+            draw::set_line_style(draw::LineStyle::Solid, 1);
 
             for t in &ticks_x {
                 draw::draw_line(
@@ -142,49 +171,52 @@ impl PlotWidget {
             }
 
             // Draw ranges
-            draw::set_draw_color(bounds_color);
+            draw::set_draw_color(BOUNDS_COLOR);
             draw::set_font(enums::Font::Helvetica, 12);
 
             let xmin_str = format!("{:.1}", area.xmin);
-            draw::draw_text(&xmin_str,
+            draw::draw_text2(&xmin_str,
                 get_x(area.xmin),
-                get_y(area.ymin - scale_y * ((MARGIN + TICK_SIZE) as f64)));
+                get_y(area.ymin - scale_y * (TICK_SIZE as f64 * 1.25)),
+                0, 0, enums::Align::TopLeft);
 
             let xmax_str = format!("{:.1}", area.xmax);
-            draw::draw_text(&xmax_str,
+            draw::draw_text2(&xmax_str,
                 get_x(area.xmax),
-                get_y(area.ymin - scale_y * ((MARGIN + TICK_SIZE) as f64)));
+                get_y(area.ymin - scale_y * (TICK_SIZE as f64 * 1.25)),
+                0, 0, enums::Align::TopRight);
 
             let ymin_str = format!("{:.1}", area.ymin);
-            draw::draw_text(&ymin_str,
-                get_x(area.xmin - scale_x * (MARGIN + TICK_SIZE) as f64),
-                get_y(area.ymin));
+            draw::draw_text2(&ymin_str,
+                get_x(area.xmin - scale_x * (TICK_SIZE as f64 * 1.25)),
+                get_y(area.ymin),
+                0, 0, enums::Align::BottomRight);
 
             let ymax_str = format!("{:.1}", area.ymax);
-            draw::draw_text(&ymax_str,
-                get_x(area.xmin - scale_x * (MARGIN + TICK_SIZE) as f64),
-                get_y(area.ymax));
+            draw::draw_text2(&ymax_str,
+                get_x(area.xmin - scale_x * (TICK_SIZE as f64 * 1.25)),
+                get_y(area.ymax),
+                0, 0, enums::Align::TopRight);
 
             // Draw plots
-            draw::set_draw_color(plot_color_1);
-            draw::set_line_style(draw::LineStyle::Solid, plot_width_1);
-            draw::begin_line();
-            for c in &point_vec_1 {
-                if c.x>area.xmin && c.x<area.xmax && c.y>area.ymin && c.y<area.ymax {
-                    draw::vertex(get_x(c.x) as f64, get_y(c.y) as f64);
-                }
-            }
-            draw::end_line();
+            let mut width: i32 = (plots.len() * 3 - 1) as i32; // Width of the lower-most plot
+            for p in plots.iter() {
+                draw::set_draw_color(p.color);
+                draw::set_line_style(draw::LineStyle::Solid, width);
+                draw::begin_line();
 
-            draw::set_draw_color(plot_color_2);
-            draw::set_line_style(draw::LineStyle::Solid, plot_width_2);
-            draw::begin_line();
-            for c in &point_vec_2 {
-                if c.x>area.xmin && c.x<area.xmax && c.y>area.ymin && c.y<area.ymax {
-                    draw::vertex(get_x(c.x) as f64, get_y(c.y) as f64);
+                // Calculate plot points
+                let point_vec = p.calc_points(point_count, &area);
+                for c in &point_vec {
+                    if c.x>area.xmin && c.x<area.xmax && c.y>area.ymin && c.y<area.ymax {
+                        draw::vertex(get_x(c.x) as f64, get_y(c.y) as f64);
+                    }
                 }
+
+                width -= 3; // Decrease width of plots lines as it goes to the top
+
+                draw::end_line();
             }
-            draw::end_line();
         });
 
         inner.handle(move |_i, ev| match ev {
@@ -193,12 +225,17 @@ impl PlotWidget {
 
         Self {
             inner,
-            area
+            area,
+            plots
         }
     }
 
     pub fn set_area(&mut self, new_area: Area) {
         *self.area.borrow_mut() = new_area;
+    }
+
+    pub fn add_plot(&mut self, new_plot: &PlotFunctionInfo) {
+        &self.plots.borrow_mut().push(new_plot.clone());
     }
 
 }
