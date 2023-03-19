@@ -1,4 +1,5 @@
 mod pendulum_model;
+use pendulum_model::PendulumModel;
 
 use fltk::{*, prelude::{*}};
 
@@ -13,7 +14,7 @@ const WIDTH: i32 = 800;
 const HEIGHT: i32 = 600;
 
 fn main() {
-    let mut model = pendulum_model::PendulumModel::new();
+    let mut model = PendulumModel::new();
     model.set_theta((THETA_0 as f64).to_radians());
 
     let model = Rc::from(RefCell::from(model));
@@ -32,29 +33,41 @@ fn main() {
         .with_size(HEIGHT - 50, HEIGHT - 50)
         .with_pos(25, 25);
 
-    model_display.draw({
-        let model = model.clone();
-        move |w| {
-            let model = model.borrow();
-            
-            // Clear widget
-            draw::draw_rect_fill(w.x(), w.y(), w.w(), w.h(), enums::Color::White);
+    let offs = draw::Offscreen::new(model_display.w(), model_display.h()).unwrap();
+    let offs = Rc::from(RefCell::from(offs));
 
-            draw::set_draw_color(enums::Color::Black);
-            draw::draw_rect(w.x(), w.y(), w.w(), w.h());
+    let update_display =
+        |m: &PendulumModel, w: i32, h: i32, offs: &draw::Offscreen| {
+            offs.begin();
+
+            // Color palette
+            const BG_COLOR: enums::Color = enums::Color::White;
+            const BOUNDS_COLOR: enums::Color = enums::Color::Black;
+            const VERT_AXIS_COLOR: enums::Color = enums::Color::Black;
+            const FIX_COLOR: enums::Color = enums::Color::DarkBlue;
+            const FIX_DOT_COLOR: enums::Color = enums::Color::White;
+            const CORD_COLOR: enums::Color = enums::Color::Black;
+            const WEIGHT_COLOR: enums::Color = enums::Color::DarkRed;
+
+            // Clear background
+            draw::draw_rect_fill(0, 0, w, h, BG_COLOR);
+
+            // Draw bounds
+            draw::set_draw_color(BOUNDS_COLOR);
+            draw::draw_rect(0, 0, w, h);
 
             // Coordinates of the pivotal point
-            let x0: i32 = w.x() + w.w() / 2;
-            let y0: i32 = w.y() + w.h() / 4;
-            let l: i32 = w.h() / 2;
+            let x0: i32 = w / 2;
+            let y0: i32 = h / 4;
+            let l: i32 = h / 2;
         
             // Coordinates of the weight
-            let angle: f64 = (90 as f64).to_radians() - model.theta();
+            let angle: f64 = (90 as f64).to_radians() - m.theta();
             let x1: i32 = (x0 as f64 + (l as f64) * (angle).cos()) as i32;
             let y1: i32 = (y0 as f64 + (l as f64) * (angle).sin()) as i32;
         
             // Draw vertical axis
-            draw::set_draw_color(enums::Color::Black);
+            draw::set_draw_color(VERT_AXIS_COLOR);
             draw::set_line_style(draw::LineStyle::DashDot, 1);
             draw::draw_line(x0, y0,
                 x0, y0 + ((l as f64) * 1.25) as i32);
@@ -62,7 +75,7 @@ fn main() {
             // Draw fixation
             const FIX_WIDTH: i32 = 90;
             const FIX_HEIGHT: i32 = 25;
-            draw::draw_rect_fill(x0 - FIX_WIDTH / 2, y0 - FIX_HEIGHT, FIX_WIDTH, FIX_HEIGHT, enums::Color::DarkBlue);
+            draw::draw_rect_fill(x0 - FIX_WIDTH / 2, y0 - FIX_HEIGHT, FIX_WIDTH, FIX_HEIGHT, FIX_COLOR);
             
             const COLS: i32 = 10;
             const ROWS: i32 = 4;
@@ -71,7 +84,7 @@ fn main() {
                 for i in ((j + 1) % 2)..COLS {
                     let x: i32 = x0 - FIX_WIDTH / 2 + (((i as f64 + ((j % 2) as f64) * 0.5) * (FIX_WIDTH as f64)) as i32) / COLS;
                     let y: i32 = y0 - (j * FIX_HEIGHT) / ROWS;
-                    draw::draw_rect_fill(x - SIZE, y - SIZE, 2*SIZE+1, 2*SIZE+1, enums::Color::White);
+                    draw::draw_rect_fill(x - SIZE, y - SIZE, 2*SIZE+1, 2*SIZE+1, FIX_DOT_COLOR);
                 }
             }
 
@@ -84,7 +97,21 @@ fn main() {
             // Draw weight
             const WEIGHT_RADIUS: i32 = 10;
             draw::set_draw_color(enums::Color::DarkRed);
-            draw::draw_circle_fill(x1 - WEIGHT_RADIUS, y1 - WEIGHT_RADIUS, WEIGHT_RADIUS * 2, enums::Color::DarkRed);
+            draw::draw_circle_fill(x1 - WEIGHT_RADIUS, y1 - WEIGHT_RADIUS, WEIGHT_RADIUS * 2, WEIGHT_COLOR);
+
+            offs.end();
+        };
+
+    model_display.draw({
+        let model = model.clone();
+        let offs = offs.clone();
+        move |w| {
+            let model = model.borrow();
+            let offs = offs.borrow_mut();
+            
+            update_display(&model, w.w(), w.h(), &offs);
+
+            offs.copy(w.x(), w.y(), w.w(), w.h(), 0, 0);
         }
     });
 
