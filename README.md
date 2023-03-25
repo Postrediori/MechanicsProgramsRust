@@ -33,6 +33,13 @@ Simple model of a mechanical pendulum.
 
 ![MechanicalPendulum screenshot](images/MechanicalPendulum.png)
 
+### WaveView
+
+Graphical demonstration of fluid mechanics problem of a fluid in
+rectangular channel of infinite length.
+
+![WaveView screenshot](images/waveview.png)
+
 ## Links
 
 * Original utils written in C++ &ndash; https://gitlab.com/Postrediori/OptimizationMethods
