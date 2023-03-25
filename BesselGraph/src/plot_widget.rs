@@ -142,13 +142,13 @@ impl PlotWidget {
             draw::set_draw_color(AXES_COLOR);
             draw::set_line_style(draw::LineStyle::DashDotDot, 1);
             
-            if (area.xmin<AXIS_X && AXIS_X<area.xmax) {
+            if area.xmin<AXIS_X && AXIS_X<area.xmax {
                 draw::draw_line(
                     get_x(AXIS_X), get_y(area.ymin),
                     get_x(AXIS_X), get_y(area.ymax));
             }
 
-            if (area.ymin<AXIS_Y && AXIS_Y<area.ymax) {
+            if area.ymin<AXIS_Y && AXIS_Y<area.ymax {
                 draw::draw_line(
                     get_x(area.xmin), get_y(AXIS_Y),
                     get_x(area.xmax), get_y(AXIS_Y));
@@ -217,6 +217,8 @@ impl PlotWidget {
 
                 draw::end_line();
             }
+            
+            draw::set_line_style(draw::LineStyle::Solid, 0);
         });
 
         inner.handle(move |_i, ev| match ev {
@@ -235,7 +237,7 @@ impl PlotWidget {
     }
 
     pub fn add_plot(&mut self, new_plot: &PlotFunctionInfo) {
-        &self.plots.borrow_mut().push(new_plot.clone());
+        self.plots.borrow_mut().push(new_plot.clone());
     }
 
 }
