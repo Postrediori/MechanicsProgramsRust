@@ -26,7 +26,6 @@ fn main() {
     let mut inpq = input::FloatInput::default()
         .with_size(90, 25).with_pos(WIDTH - 90 - 50, 10)
         .with_label("q = ");
-    inpq.set_value("0.5000");
 
     let mut btn_calc = button::Button::default()
         .with_size(90, 25).below_of(&inpq, 10)
@@ -38,9 +37,7 @@ fn main() {
         .with_pos(graph.x()+graph.w()+10, btn_calc.y()+btn_calc.h()+10);
     disp.set_buffer(buffer);
 
-    btn_calc.set_callback(move |_b| {
-        let q_val: f64 = inpq.value().parse::<f64>().expect("Not a number!");
-
+    let mut set_q_value = move |q_val| {
         let mut buffer = disp.buffer().unwrap();
         buffer.set_text("");
 
@@ -57,6 +54,18 @@ fn main() {
 
         graph.set_lines(q_val, lambda1, lambda2);
         graph.redraw();
+    };
+
+    // Initial setup of controls
+    const DEFAULT_Q_VALUE: f64 = 0.5;
+    let q_str = format!("{:.4}", DEFAULT_Q_VALUE);
+    inpq.set_value(&q_str);
+    set_q_value(DEFAULT_Q_VALUE);
+
+    btn_calc.set_callback(move |_b| {
+        let q_val: f64 = inpq.value().parse::<f64>().expect("Not a number!");
+        
+        set_q_value(q_val);
     });
 
     wind.end();
