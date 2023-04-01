@@ -24,7 +24,7 @@ pub struct MainWindow {
 impl MainWindow {
     pub fn make_window(w: i32, h: i32, title: &str) -> Self {
         let wind = window::Window::default()
-            .with_size(w, h)
+            .with_size(w, h).center_screen()
             .with_label(title);
 
         let plot_widget_w: i32 = h - MARGIN * 2;
@@ -38,7 +38,7 @@ impl MainWindow {
 
         let mut g_settings = group::Group::default()
             .with_size(195, 320)
-            .with_pos(MARGIN * 2 + plot_widget_w, MARGIN * 2)
+            .with_pos(uw_plot.x() + uw_plot.w() + MARGIN, MARGIN * 2)
             .with_label("Settings").with_align(enums::Align::Top);
         g_settings.set_frame(enums::FrameType::ShadowBox);
         

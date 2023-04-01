@@ -37,7 +37,7 @@ impl PlotWidget {
         inner.draw({
             let offs = offs.clone();
             move |i| {
-                let offs = offs.borrow_mut();
+                let offs = offs.borrow();
                 offs.copy(i.x(), i.y(), i.w(), i.h(), 0, 0);
             }
         });
