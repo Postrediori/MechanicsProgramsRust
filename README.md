@@ -38,7 +38,7 @@ Simple model of a mechanical pendulum.
 Graphical demonstration of fluid mechanics problem of a fluid in
 rectangular channel of infinite length.
 
-![WaveView screenshot](images/waveview.png)
+![WaveView screenshot](images/waveview2.png)
 
 ### MediaWave
 

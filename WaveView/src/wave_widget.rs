@@ -14,7 +14,9 @@ struct Area {
 }
 
 const MARGIN: i32 = 40;
-const TICK_SIZE: i32 = 0; // 15;
+const TICK_SIZE: i32 = 15;
+const TICKS_COUNT_X: i32 = 20;
+const TICKS_COUNT_Y: i32 = 30;
 
 pub struct WaveWidget {
     inner: widget::Widget,
@@ -96,14 +98,12 @@ impl WaveWidget {
 
         let time_str = format!("time: {:.4}", m.time);
         draw::draw_text2(&time_str,
-            self.get_x((area.xmax - area.xmin) / 2.0 + area.xmin) as i32, self.get_y(area.ymin) as i32,
+            self.get_x((area.xmax - area.xmin) / 2.0 + area.xmin) as i32, self.get_y(area.ymin) as i32 + TICK_SIZE,
             0, 0, enums::Align::Top);
 
 
         // Draw gradient heatmap (lowermost)
         fn get_gradient(c1: enums::Color, c2: enums::Color, n: usize) -> Vec<enums::Color> {
-            // println!("Creating gradient from {} to {} with {} colors",
-            //     enums::Color::to_hex_str(&c1), enums::Color::to_hex_str(&c2), n);
             let (r1, g1, b1) = c1.to_rgb();
             let (r2, g2, b2) = c2.to_rgb();
             let mut colors: Vec<enums::Color> = Vec::new();
@@ -154,28 +154,46 @@ impl WaveWidget {
         draw::vertex(self.get_x(area.xmax), self.get_y(area.ymin));
         draw::end_loop();
 
+        // Ticks
+        let dx = (area.xmax - area.xmin) / TICKS_COUNT_X as f64;
+        for i in 0..TICKS_COUNT_X+1 {
+            draw::draw_yxline(
+                self.get_x(area.xmin + dx * (i as f64)) as i32,
+                self.get_y(area.ymin) as i32,
+                self.get_y(area.ymin) as i32 + TICK_SIZE / (if i % 2 == 0 { 1 } else { 2 }));
+        }
+
+        let dy = (area.ymax - area.ymin) / TICKS_COUNT_Y as f64;
+        for i in 0..TICKS_COUNT_Y+1 {
+            draw::draw_xyline(
+                self.get_x(area.xmin) as i32,
+                self.get_y(area.ymin + dy * (i as f64)) as i32,
+                self.get_x(area.xmin) as i32 - TICK_SIZE / (if i % 2 == 0 { 1 } else { 2 }));
+        }
+
+        // Draw range labels
         draw::set_draw_color(TEXT_COLOR);
         draw::set_font(enums::Font::Helvetica, 14);
 
         let xmin_str = format!("{:.2}", area.xmin);
         draw::draw_text2(&xmin_str,
-            self.get_x(area.xmin) as i32, self.get_y(area.ymin) as i32,
+            self.get_x(area.xmin) as i32, self.get_y(area.ymin) as i32 + TICK_SIZE,
             0, 0, enums::Align::TopLeft);
 
         let xmax_str = format!("{:.2}", area.xmax);
         draw::draw_text2(&xmax_str,
-            self.get_x(area.xmax) as i32, self.get_y(area.ymin) as i32,
+            self.get_x(area.xmax) as i32, self.get_y(area.ymin) as i32 + TICK_SIZE,
             0, 0, enums::Align::TopRight);
 
         let ymin_str = format!("{:.2}", area.ymin);
         draw::draw_text2(&ymin_str,
-            self.get_x(area.xmin) as i32, self.get_y(area.ymin) as i32,
-            0, 0, enums::Align::BottomRight);
+            self.get_x(area.xmin) as i32 - TICK_SIZE - 2, self.get_y(area.ymin) as i32,
+            0, 0, enums::Align::Right);
 
         let ymax_str = format!("{:.2}", area.ymax);
         draw::draw_text2(&ymax_str,
-            self.get_x(area.xmin) as i32, self.get_y(area.ymax) as i32,
-            0, 0, enums::Align::TopRight);
+            self.get_x(area.xmin) as i32 - TICK_SIZE - 2, self.get_y(area.ymax) as i32,
+            0, 0, enums::Align::Right);
 
         // Draw axes
         const AXIS_Y: f64 = 0.0;
@@ -193,7 +211,7 @@ impl WaveWidget {
 
         let yaxis_str = format!("{:.2}", AXIS_Y);
         draw::draw_text2(&yaxis_str,
-            self.get_x(area.xmin) as i32, self.get_y(AXIS_Y) as i32,
+            self.get_x(area.xmin) as i32 - TICK_SIZE - 2, self.get_y(AXIS_Y) as i32,
             0, 0, enums::Align::Right);
 
         // Draw model
