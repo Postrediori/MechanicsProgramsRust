@@ -1,2 +1,2 @@
 [workspace]
-members = ["BesselGraph", "FluidCalc", "FluidView", "MechanicalPendulum", "WaveView"]
+members = ["BesselGraph", "FluidCalc", "FluidView", "MechanicalPendulum", "MediaWave", "WaveView"]

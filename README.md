@@ -40,6 +40,15 @@ rectangular channel of infinite length.
 
 ![WaveView screenshot](images/waveview.png)
 
+### MediaWave
+
+Graphical demonstration of fluid mechanics problem of haze in a tube
+of limited length with various initial boundary conditions for the tube
+edges (e.g. closed, opened, with friction) as well as for pressure and velocity
+of a fluid.
+
+![MediaWave simulation screenshot](images/mediawave.png)
+
 ## Links
 
 * Original utils written in C++ &ndash; https://gitlab.com/Postrediori/OptimizationMethods

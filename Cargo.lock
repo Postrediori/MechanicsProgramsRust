@@ -99,6 +99,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "media_wave"
+version = "1.0.0"
+dependencies = [
+ "fltk",
+]
+
+[[package]]
 name = "paste"
 version = "1.0.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
