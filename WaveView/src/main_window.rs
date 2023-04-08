@@ -46,17 +46,18 @@ impl MainWindow {
 
         let mut surface_choice = menu::Choice::default()
             .with_size(90, 25)
-            .with_pos(g_params.x() + 80, g_params.y() + 10)
+            .with_pos(g_params.x() + 85, g_params.y() + 10)
             .with_label("Surface :");
         surface_choice.add_choice("Linear");
         surface_choice.add_choice("Sine");
         surface_choice.add_choice("Cosine");
+        surface_choice.add_choice("Halfsine");
         surface_choice.set_value(0);
 
         let mut g_in = valuator::ValueSlider::default()
             .with_size(125, 25)
             .below_of(&surface_choice, 5)
-            .with_pos(g_params.x() + 45, surface_choice.y()+surface_choice.h()+5)
+            .with_pos(g_params.x() + 50, surface_choice.y()+surface_choice.h()+5)
             .with_label("g =").with_align(enums::Align::Left);
         g_in.set_tooltip("Gravitational constant");
         g_in.set_bounds(0.1, 20.0);
@@ -85,7 +86,7 @@ impl MainWindow {
 
         let mut dtime_in = valuator::ValueOutput::default()
             .with_size(90, 25)
-            .with_pos(g_params.x()+80, eps_in.y()+eps_in.h()+5)
+            .with_pos(surface_choice.x(), eps_in.y()+eps_in.h()+5)
             .with_label("dtime =").with_align(enums::Align::Left);
         dtime_in.set_tooltip("Time delta of single simulation step");
 

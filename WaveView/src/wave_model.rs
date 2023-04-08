@@ -112,40 +112,36 @@ impl WaveModel {
     }
 
     pub fn set_surface_func(&mut self, n: i32) {
-        match n {
-        0 => { self.surface_func = surface_functions::linear_surface; }
-        1 => { self.surface_func = surface_functions::sine_surface; }
-        2 => { self.surface_func = surface_functions::cosine_surface; }
-        _ => { println!("Unknown surface type!"); }
-        }
+        self.surface_func = match n {
+        0 => { surface_functions::linear_surface }
+        1 => { surface_functions::sine_surface }
+        2 => { surface_functions::cosine_surface }
+        3 => { surface_functions::halfsine_surface }
+        _ => { eprintln!("Unknown surface type!"); |_| { 0.0 } }
+        };
     }
 
     // Math functions
     fn fourier_n(&self, d: f64, n: usize) -> f64 {
         const MAX_ITER: usize = 1_000;
 
-        let mut fi = vec![0.0; MAX_ITER+1];
-
         let minx = 0.0;
         let maxx = d;
         let dx = (maxx - minx) / (MAX_ITER as f64);
-        for i in 0..MAX_ITER+1 {
+
+        let s: f64 = (0..MAX_ITER+1).map(|i| {
+            // Calculate plot points
             let xi = minx + dx * (i as f64);
-            fi[i] = (self.surface_func)(xi, self.delta, self.epsilon) * (self.kn[n as usize] * xi).cos();
-        }
+            let yi = self.epsilon * (self.surface_func)(xi / self.delta) * (self.kn[n] * xi).cos();
 
-        let k = MAX_ITER / 2;
-        let s1 = fi[0] + fi[MAX_ITER];
-        let mut s2 = 0.0;
-        let mut s4 = 0.0;
-        for i in 2..k+1 {
-            s2 += fi[(i - 1) * 2 - 1 as usize];
-        }
-        for i in 1..k+1 {
-            s4 += fi[(i - 1) * 2 as usize];
-        }
+            // Calculate coefficients for Simpson's rule integration
+            let k = match i {
+                0 | MAX_ITER => { 1 },
+                _ => { 2 + (i % 2) * 2 }
+            };
 
-        let s = (s1 + 2.0 * s2 + 4.0 * s4) * dx / 3.0;
+            yi * (k as f64)
+        }).sum::<f64>() * dx / 3.0;
 
         2.0 * s / d
     }
