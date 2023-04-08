@@ -1,6 +1,9 @@
 use std::f64::consts::PI;
 use crate::surface_functions;
 
+#[cfg(debug_assertions)]
+use std::time::SystemTime;
+
 const DEFAULT_G: f64 = 9.81;
 const DEFAULT_DELTA: f64 = 1.0;
 const DEFAULT_EPSILON: f64 = 0.1;
@@ -25,6 +28,13 @@ pub struct Point {
 
 type Points = Vec<Point>;
 
+#[derive(Copy, Clone)]
+struct Particle {
+    k: f64,
+    a: f64,
+    sigma2: f64,
+    sigma: f64,
+}
 
 // Model of water cross-section
 pub struct WaveModel {
@@ -44,14 +54,13 @@ pub struct WaveModel {
     pub zn: usize,
     pub maxn: usize,
     // Parameters vectors
-    kn: Vec<f64>,
-    an: Vec<f64>,
-    sigman2: Vec<f64>,
-    sigman: Vec<f64>,
+    particles: Vec<Particle>,
     // Points data vector
     pub points: Points,
     // Current surface function
     surface_func: surface_functions::SurfaceFunc,
+    #[cfg(debug_assertions)]
+    benchmarks: Vec<u128>,
 }
 
 impl WaveModel {
@@ -67,18 +76,20 @@ impl WaveModel {
             xn: DEFAULT_XN,
             zn: DEFAULT_ZN,
             maxn: DEFAULT_MAXN,
-            kn: vec![0.0; DEFAULT_MAXN],
-            an: vec![0.0; DEFAULT_MAXN],
-            sigman2: vec![0.0; DEFAULT_MAXN],
-            sigman: vec![0.0; DEFAULT_MAXN],
+            particles: vec![Particle{k: 0.0, a: 0.0, sigma2: 0.0, sigma: 0.0}; DEFAULT_MAXN],
             points: vec![Point { x: 0.0, z: 0.0, x0: 0.0, z0: 0.0 }; DEFAULT_XN * DEFAULT_ZN],
             surface_func: surface_functions::linear_surface,
+            #[cfg(debug_assertions)]
+            benchmarks: vec![],
         }
     }
 
     pub fn reset(&mut self) {
         self.time = 0.0;
         self.frame = 0;
+        
+        #[cfg(debug_assertions)]
+        self.benchmarks.clear();
 
         self.calc_coeffs();
 
@@ -99,16 +110,20 @@ impl WaveModel {
     }
 
     pub fn step(&mut self) {
+        #[cfg(debug_assertions)]
+        let t_init = SystemTime::now();
+
         self.frame += 1;
         self.time = (self.frame as f64) * self.dtime;
         for idx in 0..(self.xn * self.zn) {
             let p = self.points[idx];
 
-            let x = p.x0 + self.f_x(p.x0, p.z0, self.time);
-            let z = p.z0 - self.f_z(p.x0, p.z0, self.time);
-
-            self.points[idx] = Point { x: x, z: z, x0: p.x0, z0: p.z0 };
+            self.points[idx].x = p.x0 + self.f_x(p.x0, p.z0, self.time);
+            self.points[idx].z = p.z0 - self.f_z(p.x0, p.z0, self.time);
         }
+
+        #[cfg(debug_assertions)]
+        self.benchmarks.push(t_init.elapsed().unwrap().as_micros());
     }
 
     pub fn set_surface_func(&mut self, n: i32) {
@@ -122,7 +137,7 @@ impl WaveModel {
     }
 
     // Math functions
-    fn fourier_n(&self, d: f64, n: usize) -> f64 {
+    fn fourier_n(&self, d: f64, p_k: f64) -> f64 {
         const MAX_ITER: usize = 1_000;
 
         let minx = 0.0;
@@ -132,7 +147,7 @@ impl WaveModel {
         let s: f64 = (0..MAX_ITER+1).map(|i| {
             // Calculate plot points
             let xi = minx + dx * (i as f64);
-            let yi = self.epsilon * (self.surface_func)(xi / self.delta) * (self.kn[n] * xi).cos();
+            let yi = self.epsilon * (self.surface_func)(xi / self.delta) * (p_k * xi).cos();
 
             // Calculate coefficients for Simpson's rule integration
             let k = match i {
@@ -146,45 +161,42 @@ impl WaveModel {
         2.0 * s / d
     }
 
-    fn calc_a(&mut self) {
-        for i in 0..self.maxn {
-            self.an[i] = self.fourier_n(self.delta, i);
-        }
-    }
-
     fn calc_coeffs(&mut self) {
-        for i in 0..self.maxn {
-            self.kn[i] = PI * ((i + 1) as f64) / self.delta;
-            self.sigman2[i] = self.g * self.kn[i] * (self.kn[i] * self.h).tanh();
-            self.sigman[i] = self.sigman2[i].sqrt();
-        }
-
-        self.calc_a();
+        self.particles = (0..self.maxn).map(|i| {
+            let k =  PI * ((i + 1) as f64) / self.delta;
+            let a = self.fourier_n(self.delta, k);
+            let sigma2 = self.g * k * (k * self.h).tanh();
+            let sigma = sigma2.sqrt();
+            Particle { k, a, sigma2, sigma }
+        }).collect();
     }
 
-    fn g_xn(&self, z0: f64, t: f64, n: usize) -> f64 {
-        -self.kn[n] * self.an[n] * (self.kn[n] * (z0 + self.h)).cosh() *
-            (self.sigman[n] * t).cos() / (self.sigman2[n] * (self.kn[n] * self.h).cosh())
+    fn g_xn(z0: f64, p: &Particle, h: f64, t: f64) -> f64 {
+        -p.k * p.a * (p.k * (z0 + h)).cosh() *
+            (p.sigma * t).cos() / (p.sigma2 * (p.k * h).cosh())
     }
 
-    fn g_zn(&self, z0: f64, t: f64, n: usize) -> f64 {
-        -self.kn[n] * self.an[n] * (self.kn[n] * (z0 + self.h)).sinh() *
-            (self.sigman[n] * t).cos() / (self.sigman2[n] * (self.kn[n] * self.h).cosh())
+    fn g_zn(z0: f64, p: &Particle, h: f64, t: f64) -> f64 {
+        -p.k * p.a * (p.k * (z0 + h)).sinh() *
+            (p.sigma * t).cos() / (p.sigma2 * (p.k * h).cosh())
     }
 
     fn f_x(&self, x0: f64, z0: f64, t: f64) -> f64 {
-        let mut sum = 0.0;
-        for i in 0..self.maxn {
-            sum += self.g_xn(z0, t, i) * ((self.kn[i] * x0).sin());
-        }
-        self.g * sum
+        self.g * self.particles.iter().map(|p| {
+            let g_xn = WaveModel::g_xn(z0, &p, self.h, t);
+            g_xn * (p.k * x0).sin()
+        }).sum::<f64>()
     }
 
     fn f_z(&self, x0: f64, z0: f64, t: f64) -> f64 {
-        let mut sum = 0.0;
-        for i in 0..self.maxn {
-            sum += self.g_zn(z0, t, i) * ((self.kn[i] * x0).cos());
-        }
-        self.g * sum
+        self.g * self.particles.iter().map(|p| {
+            let g_zn = WaveModel::g_zn(z0, &p, self.h, t);
+            g_zn * (p.k * x0).cos()
+        }).sum::<f64>()
+    }
+    
+    #[cfg(debug_assertions)]
+    pub fn benchmark(&self) -> u128 {
+        (self.benchmarks.iter().sum::<u128>() as f64 / self.benchmarks.len() as f64) as u128
     }
 }

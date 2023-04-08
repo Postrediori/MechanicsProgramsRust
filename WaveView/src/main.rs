@@ -95,6 +95,9 @@ fn main() {
                     Message::Step => {
                         m.step();
                         w.ww.draw_model(&m);
+
+                        #[cfg(debug_assertions)]
+                        println!("DEBUG - Avg Step time (μs): {}", m.benchmark());
                     }
                     Message::Running => {
                         if *running {
