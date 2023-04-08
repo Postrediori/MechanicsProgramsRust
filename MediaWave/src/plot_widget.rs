@@ -154,12 +154,12 @@ impl PlotWidget {
         let ymin_str = format!("{:.1}", area.ymin);
         draw::draw_text2(&ymin_str,
             self.get_x(area.xmin) as i32 - TICK_SIZE - 2, self.get_y(area.ymin) as i32,
-            0, 0, enums::Align::BottomRight);
+            0, 0, enums::Align::Right);
 
         let ymax_str = format!("{:.1}", area.ymax);
         draw::draw_text2(&ymax_str,
             self.get_x(area.xmin) as i32 - TICK_SIZE - 2, self.get_y(area.ymax) as i32,
-            0, 0, enums::Align::TopRight);
+            0, 0, enums::Align::Right);
 
         // Axis
         draw::set_line_style(draw::LineStyle::DashDot, 1);

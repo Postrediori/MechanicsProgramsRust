@@ -44,7 +44,7 @@ impl MainWindow {
         
         let mut choice_ux = menu::Choice::default()
             .with_size(100, 25)
-            .with_pos(g_settings.x() + 75, g_settings.y() + MARGIN)
+            .with_pos(g_settings.x() + 80, g_settings.y() + MARGIN)
             .with_label("U(X)");
         choice_ux.set_tooltip("Initial condition for velocities in the pipe");
         choice_ux.set_text_color(enums::Color::DarkBlue);

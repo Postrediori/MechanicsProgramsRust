@@ -47,7 +47,7 @@ of limited length with various initial boundary conditions for the tube
 edges (e.g. closed, opened, with friction) as well as for pressure and velocity
 of a fluid.
 
-![MediaWave simulation screenshot](images/mediawave.png)
+![MediaWave simulation screenshot](images/mediawave2.png)
 
 ## Links
 

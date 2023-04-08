@@ -13,35 +13,37 @@ pub const BOUNDARY_OPEN: BoundaryCondition = BoundaryCondition { b: 1.0, c: 0.0 
 const DEFAULT_CONDITION_L: BoundaryCondition = BOUNDARY_SEALED;
 const DEFAULT_CONDITION_R: BoundaryCondition = BOUNDARY_SEALED;
 
-fn initial_u(id: &str, x: f64) -> f64 {
+type InitialFunc = fn(f64) -> f64;
+
+fn f_initial_u(id: &str) -> InitialFunc {
     const UN_0: f64 = 0.0;
     const UN_1: f64 = 1.0;
 
     match id {
-    "▄▄▄▄▄▄" => { UN_0 }
-    "██▄▄██" => { if x*3.0<1.0 || x*3.0>2.0 { UN_1 } else { UN_0 } }
-    "██▄▄▄▄" => { if x*3.0<1.0 { UN_1 } else { UN_0 } }
-    "▄▄██▄▄" => { if x*3.0>1.0 && x*3.0<2.0 { UN_1 } else { UN_0 } }
-    "▄▄▄▄██" => { if x*3.0>2.0 { UN_1 } else { UN_0 } }
-    "▄▄▄███" => { if x<0.5 { -UN_1 } else { UN_1 } }
-    "███▄▄▄" => { if x<0.5 { UN_1 } else { -UN_1 } }
-    _ => { println!("Unknown initial conditions id {}", id); UN_0 }
+    "▄▄▄▄▄▄" => { |_| UN_0 }
+    "██▄▄██" => { |x| if x*3.0<1.0 || x*3.0>2.0 { UN_1 } else { UN_0 } }
+    "██▄▄▄▄" => { |x| if x*3.0<1.0 { UN_1 } else { UN_0 } }
+    "▄▄██▄▄" => { |x| if x*3.0>1.0 && x*3.0<2.0 { UN_1 } else { UN_0 } }
+    "▄▄▄▄██" => { |x| if x*3.0>2.0 { UN_1 } else { UN_0 } }
+    "▄▄▄███" => { |x| if x<0.5 { -UN_1 } else { UN_1 } }
+    "███▄▄▄" => { |x| if x<0.5 { UN_1 } else { -UN_1 } }
+    _ => { eprintln!("Unknown initial conditions id {}", id); |_| UN_0 }
     }
 }
 
-fn initial_p(id: &str, x: f64) -> f64 {
+fn f_initial_p(id: &str) -> InitialFunc {
     const PN_0: f64 = 0.0;
     const PN_1: f64 = 1.0;
 
     match id {
-    "▄▄▄▄▄▄" => { PN_0 }
-    "██▄▄██" => { if x*3.0<1.0 || x*3.0>2.0 { PN_1 } else { PN_0 } }
-    "██▄▄▄▄" => { if x*3.0<1.0 { PN_1 } else { PN_0 } }
-    "▄▄██▄▄" => { if x*3.0>1.0 && x*3.0<2.0 { PN_1 } else { PN_0 } }
-    "▄▄▄▄██" => { if x*3.0>2.0 { PN_1 } else { PN_0 } }
-    "▄▄▄███" => { if x<0.5 { -PN_1 } else { PN_1 } }
-    "███▄▄▄" => { if x<0.5 { PN_1 } else { -PN_1 } }
-    _ => { println!("Unknown initial conditions id {}", id); PN_0 }
+    "▄▄▄▄▄▄" => { |_| PN_0 }
+    "██▄▄██" => { |x| if x*3.0<1.0 || x*3.0>2.0 { PN_1 } else { PN_0 } }
+    "██▄▄▄▄" => { |x| if x*3.0<1.0 { PN_1 } else { PN_0 } }
+    "▄▄██▄▄" => { |x| if x*3.0>1.0 && x*3.0<2.0 { PN_1 } else { PN_0 } }
+    "▄▄▄▄██" => { |x| if x*3.0>2.0 { PN_1 } else { PN_0 } }
+    "▄▄▄███" => { |x| if x<0.5 { -PN_1 } else { PN_1 } }
+    "███▄▄▄" => { |x| if x<0.5 { PN_1 } else { -PN_1 } }
+    _ => { eprintln!("Unknown initial conditions id {}", id); |_| PN_0 }
     }
 }
 
@@ -99,8 +101,11 @@ impl PipeModel {
         self.x = (0..self.n+1).map(|i| self.h * (i as f64)).collect();
         self.x2 = self.x.split_last().unwrap().1.into_iter().map(|x| x + self.h2).collect();
 
-        self.u1 = self.x2.clone().into_iter().map(|x| initial_u(&self.un_id, x / self.len)).collect();
-        self.p1 = self.x2.clone().into_iter().map(|x| initial_p(&self.pn_id, x / self.len)).collect();
+        let initial_u = f_initial_u(&self.un_id);
+        let initial_p = f_initial_p(&self.pn_id);
+
+        self.u1 = self.x2.clone().into_iter().map(|x| initial_u(x / self.len)).collect();
+        self.p1 = self.x2.clone().into_iter().map(|x| initial_p(x / self.len)).collect();
 
         self.u = vec![0.0; self.n+1];
         self.p = vec![0.0; self.n+1];
