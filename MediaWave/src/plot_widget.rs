@@ -100,7 +100,7 @@ impl PlotWidget {
         for i in 0..y_points.len() {
             let y = y_points[i];
             let t = 1.0 - (y - area.ymin) / (area.ymax - area.ymin);
-            let k = (PALETTE.len() as f64 * t) as usize % PALETTE.len();
+            let k = ((PALETTE.len() - 1) as f64 * t) as usize;
 
             draw::set_draw_color(PALETTE[k]);
             draw::draw_polygon3(
