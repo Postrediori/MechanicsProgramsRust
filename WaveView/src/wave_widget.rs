@@ -4,6 +4,7 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 use crate::wave_model::WaveModel;
+use crate::frame_saver::FrameSaver;
 
 #[derive(Copy, Clone)]
 struct Area {
@@ -24,6 +25,7 @@ pub struct WaveWidget {
     pixel_x: f64,
     pixel_y: f64,
     offs: Rc<RefCell<draw::Offscreen>>,
+    frame_saver: FrameSaver,
 }
 
 impl WaveWidget {
@@ -62,12 +64,15 @@ impl WaveWidget {
             _ => false,
         });
 
+        let frame_saver = FrameSaver::new();
+
         Self {
             inner,
             area,
             pixel_x,
             pixel_y,
-            offs
+            offs,
+            frame_saver,
         }
     }
 
@@ -87,6 +92,10 @@ impl WaveWidget {
 
         let scale_x = (area.xmax - area.xmin) / m.delta;
         let scale_z = (AXIS_Y - area.ymin) / m.h;
+
+        // Actual vertical ranges based on model data
+        let y_min = -m.h;
+        let y_max = m.h * area.ymax.abs() / area.ymin.abs();
 
         // Clear screen
         draw::draw_rect_fill(0, 0, width, height, enums::Color::White);
@@ -185,12 +194,12 @@ impl WaveWidget {
             self.get_x(area.xmax) as i32, self.get_y(area.ymin) as i32 + TICK_SIZE,
             0, 0, enums::Align::TopRight);
 
-        let ymin_str = format!("{:.2}", area.ymin);
+        let ymin_str = format!("{:.2}", y_min);
         draw::draw_text2(&ymin_str,
             self.get_x(area.xmin) as i32 - TICK_SIZE - 2, self.get_y(area.ymin) as i32,
             0, 0, enums::Align::Right);
 
-        let ymax_str = format!("{:.2}", area.ymax);
+        let ymax_str = format!("{:.2}", y_max);
         draw::draw_text2(&ymax_str,
             self.get_x(area.xmin) as i32 - TICK_SIZE - 2, self.get_y(area.ymax) as i32,
             0, 0, enums::Align::Right);
@@ -248,6 +257,20 @@ impl WaveWidget {
         self.offs.borrow().end();
 
         self.redraw();
+    }
+
+    pub fn reset_frame_counter(&mut self) {
+        self.frame_saver.reset();
+    }
+
+    pub fn save_frame(&mut self) {
+        match draw::capture_offscreen(&mut self.offs.borrow_mut(), self.w(), self.h()) {
+            Ok(img) => {
+                let data = img.to_rgb_data();
+                self.frame_saver.save_frame(&data, img.width(), img.height());
+            }
+            Err(error) => { eprintln!("Cannot capture frame to image. Error: {}", error); }
+        }
     }
 }
 

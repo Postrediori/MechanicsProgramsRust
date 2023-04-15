@@ -24,6 +24,8 @@ pub struct MainWindow {
     pub btn_apply: button::Button,
     pub btn_step: button::Button,
     pub btn_start_stop: button::Button,
+    pub btn_save_frame: button::Button,
+    pub btn_save_all_frames: button::CheckButton,
 }
 
 impl MainWindow {
@@ -121,6 +123,26 @@ impl MainWindow {
 
         g_controls.end();
 
+        let mut g_capture = group::Group::default()
+            .with_size(g_params.w(), 75)
+            .below_of(&g_controls, 15);
+        g_capture.set_frame(enums::FrameType::RoundedFrame);
+        g_capture.set_color(enums::Color::Black);
+
+        let mut btn_save_frame = button::Button::default()
+            .with_size(90, 25)
+            .with_pos(g_capture.x(), g_capture.y() + 10).center_x(&g_capture)
+            .with_label("Save frame");
+        btn_save_frame.set_tooltip("Save single frame of the simulation");
+
+        let mut btn_save_all_frames = button::CheckButton::default()
+            .with_size(90, 25)
+            .with_pos(g_capture.x() + 35, btn_save_frame.y() + btn_save_frame.h() + 5)
+            .with_label("Save all frames");
+        btn_save_all_frames.set_tooltip("Save all frames of the running simulation (this will slow down the program a lot!)");
+
+        g_capture.end();
+
         wind.end();
         wind.show();
 
@@ -137,7 +159,9 @@ impl MainWindow {
             dtime_in,
             btn_apply,
             btn_step,
-            btn_start_stop
+            btn_start_stop,
+            btn_save_frame,
+            btn_save_all_frames,
         }
     }
 
