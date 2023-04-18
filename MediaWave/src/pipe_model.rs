@@ -48,6 +48,7 @@ fn f_initial_p(id: &str) -> InitialFunc {
 }
 
 pub struct PipeModel {
+    pub time: f64,
     pub len: f64,
     pub n: usize,
     pub sigma: f64,
@@ -71,6 +72,7 @@ pub struct PipeModel {
 impl PipeModel {
     pub fn new(len: f64, n: usize) -> Self {
         Self {
+            time: 0.0,
             len,
             n,
             sigma: DEFAULT_SIGMA,
@@ -92,6 +94,8 @@ impl PipeModel {
 
     // Reset the simulation
     pub fn reset(&mut self) {
+        self.time = 0.0;
+
         self.h = self.len / (self.n as f64);
         self.h2 = self.h / 2.0;
         self.tau = self.sigma * self.h / self.a;
@@ -113,6 +117,8 @@ impl PipeModel {
 
     // Perform single step of the simulation
     pub fn step(&mut self) {
+        self.time = self.time + self.tau;
+
         // Solve system of 2 equations with 2 variables
         fn simq2(a: [[f64; 2]; 2], b: [f64; 2]) -> Option<[f64; 2]> {
             let delta = a[0][0] * a[1][1] - a[1][0] * a[0][1];

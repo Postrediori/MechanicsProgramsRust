@@ -59,7 +59,7 @@ impl PlotWidget {
         (self.area.ymax - y) / self.pixel_y + MARGIN as f64
     }
 
-    pub fn draw_plot(&mut self, x_points: &Vec<f64>, y_points: &Vec<f64>, len: f64) {
+    pub fn draw_plot(&mut self, x_points: &Vec<f64>, y_points: &Vec<f64>, len: f64, time: Option<f64>) {
         let (width, height) = (self.w(), self.h());
        
         let area = Area { xmin: 0.0, xmax: len, ymin: -2.0, ymax: 2.0 };
@@ -79,6 +79,16 @@ impl PlotWidget {
 
         let title = self.label();
         draw::draw_text2(&title, self.w() / 2, MARGIN / 2, 0, 0, enums::Align::Center);
+
+        match time {
+            None => { },
+            Some(t) => {
+                let time_str = format!("time: {:.4}", t);
+                draw::draw_text2(&time_str,
+                    self.get_x((area.xmax - area.xmin) / 2.0 + area.xmin) as i32, self.get_y(area.ymin) as i32 + TICK_SIZE,
+                    0, 0, enums::Align::Top);
+            }
+        }
 
         // Heatmap (lowermost layer)
         const AXIS_Y: f64 = 0.0;
@@ -187,6 +197,10 @@ impl PlotWidget {
         self.offs.borrow().end();
 
         self.redraw();
+    }
+
+    pub fn copy_plot(&self, x: i32, y: i32, w: i32, h: i32, src_x: i32, src_y: i32) {
+        self.offs.borrow().copy(x, y, w, h, src_x, src_y);
     }
 }
 

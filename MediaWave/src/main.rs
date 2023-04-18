@@ -1,3 +1,5 @@
+mod frame_saver;
+
 use fltk::{*, prelude::{*}};
 
 use std::cell::RefCell;
@@ -60,6 +62,7 @@ fn main() {
             w.get_inputs(&mut model);
             model.reset();
 
+            w.reset_frame_counter();
             w.draw_model(&model);
         }
     });
@@ -80,6 +83,14 @@ fn main() {
             else {
                 tx.send(Message::Start);
             }
+        }
+    });
+
+    w.borrow_mut().btn_save_frame.set_callback({
+        let w = w.clone();
+        move |_|{
+            let mut w = w.borrow_mut();
+            w.save_frame();
         }
     });
 
@@ -106,6 +117,11 @@ fn main() {
                     Message::Step => {
                         model.step();
                         w.draw_model(&model);
+                        
+                        // Save frame of the simulation
+                        if w.btn_save_all_frames.value() {
+                            w.save_frame();
+                        }
                     }
                     Message::Running => {
                         if *running {

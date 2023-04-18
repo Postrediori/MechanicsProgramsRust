@@ -1,10 +1,13 @@
 use fltk::{*, prelude::*};
 
 use crate::{plot_widget::PlotWidget, pipe_model::{PipeModel, BOUNDARY_OPEN, BOUNDARY_SEALED}};
+use crate::frame_saver::FrameSaver;
 
 const MARGIN: i32 = 10;
 pub struct MainWindow {
     wind: window::Window,
+    frame_saver: FrameSaver,
+    frame_offs: draw::Offscreen,
     uw_plot: PlotWidget,
     pw_plot: PlotWidget,
     choice_ux: menu::Choice,
@@ -19,6 +22,8 @@ pub struct MainWindow {
     pub btn_apply: button::Button,
     pub btn_step: button::Button,
     pub btn_start_stop: button::Button,
+    pub btn_save_frame: button::Button,
+    pub btn_save_all_frames: button::CheckButton,
 }
 
 impl MainWindow {
@@ -30,6 +35,8 @@ impl MainWindow {
         let plot_widget_w: i32 = h - MARGIN * 2;
         let plot_widget_h: i32 = (plot_widget_w - MARGIN) / 2;
 
+        let frame_offs = draw::Offscreen::new(plot_widget_w, 2*plot_widget_h).unwrap();
+
         let uw_plot = PlotWidget::new(MARGIN, MARGIN,
             plot_widget_w, plot_widget_h, "U(x)");
 
@@ -37,7 +44,7 @@ impl MainWindow {
             plot_widget_w, plot_widget_h, "P(x)");
 
         let mut g_settings = group::Group::default()
-            .with_size(195, 320)
+            .with_size(195, 315)
             .with_pos(uw_plot.x() + uw_plot.w() + MARGIN, MARGIN * 2)
             .with_label("Settings").with_align(enums::Align::Top);
         g_settings.set_frame(enums::FrameType::ShadowBox);
@@ -104,7 +111,7 @@ impl MainWindow {
 
         let in_a = input::FloatInput::default()
             .with_size(100, 25)
-            .below_of(&in_n, 10)
+            .below_of(&in_n, 5)
             .with_label("a =");
 
         let in_rho = input::FloatInput::default()
@@ -126,32 +133,55 @@ impl MainWindow {
         g_settings.end();
 
         let mut g_controls = group::Group::default()
-            .with_size(g_settings.w(), 90)
-            .below_of(&g_settings, 30)
+            .with_size(g_settings.w(), 70)
+            .below_of(&g_settings, 18)
             .with_label("Model Controls");
         g_controls.set_frame(enums::FrameType::ShadowBox);
 
         let mut btn_step = button::Button::default()
             .with_size(90, 25)
-            .with_pos(g_controls.x(), g_controls.y() + 15)
+            .with_pos(g_controls.x(), g_controls.y() + 5)
             .center_x(&g_controls)
             .with_label("Step");
         btn_step.set_tooltip("Make single step of the simulation");
 
         let mut btn_start_stop = button::Button::default()
             .with_size(90, 25)
-            .below_of(&btn_step, 10)
+            .below_of(&btn_step, 5)
             .with_label("Start");
         btn_start_stop.set_tooltip("Start or stop the simulation");
 
         g_controls.end();
 
+        let mut g_capture = group::Group::default()
+            .with_size(g_controls.w(), 65)
+            .below_of(&g_controls, 7);
+        g_capture.set_frame(enums::FrameType::ShadowBox);
+
+        let mut btn_save_frame = button::Button::default()
+            .with_size(90, 25)
+            .with_pos(g_capture.x(), g_capture.y() + 5).center_x(&g_capture)
+            .with_label("Save frame");
+        btn_save_frame.set_tooltip("Save single frame of the simulation");
+
+        let mut btn_save_all_frames = button::CheckButton::default()
+            .with_size(90, 25)
+            .with_pos(g_capture.x() + 35, btn_save_frame.y() + btn_save_frame.h() + 5)
+            .with_label("Save all frames");
+        btn_save_all_frames.set_tooltip("Save all frames of the running simulation (this will slow down the program a lot!)");
+
+        g_capture.end();
+
         wind.end();
 
         app::set_focus(&btn_start_stop);
 
+        let frame_saver = FrameSaver::new();
+
         Self {
             wind,
+            frame_saver,
+            frame_offs,
             uw_plot,
             pw_plot,
             choice_ux,
@@ -165,7 +195,9 @@ impl MainWindow {
             in_sigma,
             btn_apply,
             btn_step,
-            btn_start_stop
+            btn_start_stop,
+            btn_save_frame,
+            btn_save_all_frames,
         }
     }
 
@@ -174,8 +206,8 @@ impl MainWindow {
     }
 
     pub fn draw_model(&mut self, m: &PipeModel) {
-        self.uw_plot.draw_plot(&m.x, &m.u1, m.len);
-        self.pw_plot.draw_plot(&m.x, &m.p1, m.len);
+        self.uw_plot.draw_plot(&m.x, &m.u1, m.len, None);
+        self.pw_plot.draw_plot(&m.x, &m.p1, m.len, Some(m.time));
     }
 
     pub fn set_inputs(&mut self, m: &PipeModel) {
@@ -257,6 +289,30 @@ impl MainWindow {
             self.btn_apply.activate();
             self.btn_step.activate();
             self.btn_start_stop.set_label("Start");
+        }
+    }
+
+    pub fn reset_frame_counter(&mut self) {
+        self.frame_saver.reset();
+    }
+
+    pub fn save_frame(&mut self) {
+        use std::cmp::max;
+
+        let w = max(self.pw_plot.w(), self.uw_plot.w());
+        let h = self.pw_plot.h() + self.uw_plot.h();
+
+        self.frame_offs.begin();
+        self.uw_plot.copy_plot(0, 0, self.uw_plot.w(), self.uw_plot.h(), 0, 0);
+        self.pw_plot.copy_plot(0, self.uw_plot.h(), self.pw_plot.w(), self.pw_plot.h(), 0, 0);
+        self.frame_offs.end();
+
+        match draw::capture_offscreen(&mut self.frame_offs, w, h) {
+            Ok(img) => {
+                let data = img.to_rgb_data();
+                self.frame_saver.save_frame(&data, img.width(), img.height());
+            }
+            Err(error) => { eprintln!("Cannot capture frame to image. Error: {}", error); }
         }
     }
 }
