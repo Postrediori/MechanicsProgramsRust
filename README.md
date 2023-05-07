@@ -55,4 +55,4 @@ of a fluid.
 
 ## Links
 
-* Original utils written in C++ &ndash; https://gitlab.com/Postrediori/OptimizationMethods
+* Original utils written in C++ &ndash; https://github.com/Postrediori/MechanicsPrograms
