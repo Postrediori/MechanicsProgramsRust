@@ -242,7 +242,7 @@ fn main() {
     wind.end();
     wind.show();
 
-    app::add_idle3({
+    {
         let running = running.clone();
         let model = model.clone();
         let model_display = model_display.clone();
@@ -252,7 +252,7 @@ fn main() {
         let btn_restart = btn_restart.clone();
         let btn_step = btn_step.clone();
         let btn_start_stop = btn_start_stop.clone();
-        move |_| {
+        while a.wait() {
             let mut running = running.borrow_mut();
             let mut model = model.borrow_mut();
             let mut model_display = model_display.borrow_mut();
@@ -306,7 +306,5 @@ fn main() {
                 }
             }
         }
-    });
-
-    a.run().unwrap();
+    };
 }

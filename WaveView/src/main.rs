@@ -83,11 +83,11 @@ fn main() {
         }
     });
 
-    app::add_idle3({
+    {
         let running = running.clone();
         let m = m.clone();
         let w = w.clone();
-        move |_| {
+        while a.wait() {
             let mut running = running.borrow_mut();
             let mut m = m.borrow_mut();
             let mut w = w.borrow_mut();
@@ -128,7 +128,5 @@ fn main() {
                 }
             }
         }
-    });
-
-    a.run().unwrap();
+    }
 }
