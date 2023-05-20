@@ -19,6 +19,7 @@ fn main() {
     
     let mut wind = window::Window::default()
         .with_size(WIDTH, HEIGHT).with_label("Fluid Flow Dynamics Calculator");
+    wind.make_resizable(true);
 
     let tabs = group::Tabs::default()
         .with_size(WIDTH - 20, HEIGHT - 20).center_of_parent();

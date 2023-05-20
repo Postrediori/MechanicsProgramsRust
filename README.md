@@ -23,7 +23,9 @@ Graphical solver for fluid flow **&lambda;<sub>1</sub>(q)** and **&lambda;<sub>2
 
 ### BesselGraph
 
-Graph plot of Bessel functions of the first kind of 0-th order **J<sub>0</sub>(x)** calculated with two methods: using integration and infinite series.
+Graph plot of Bessel functions of the first kind of 0-th order **Y<sub>0</sub>(x)** calculated with two methods: using integration and infinite series.
+
+* [Bessel functions of the second kind: Y<sub>&alpha;</sub>](https://en.wikipedia.org/wiki/Bessel_function#Bessel_functions_of_the_second_kind)
 
 ![BesselGraph screenshot](images/besselgraph.png)
 

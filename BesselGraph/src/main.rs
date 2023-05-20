@@ -31,6 +31,7 @@ fn main() {
     let mut wind = window::Window::default()
         .with_size(WIDTH, HEIGHT)
         .with_label("Bessel Function");
+    wind.make_resizable(true);
 
     // Plot widget
     const PLOT_WIDGET_SIZE: i32 = HEIGHT - 20;

@@ -20,6 +20,7 @@ fn main() {
     let mut wind = window::Window::default()
         .with_size(WIDTH, HEIGHT)
         .with_label("Fluid Flow Visual Calculator");
+    wind.make_resizable(true);
 
     let mut graph = graph_widget::GraphWidget::new(10, 10, HEIGHT-20, HEIGHT-20);
 
