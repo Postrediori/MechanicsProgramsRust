@@ -31,9 +31,16 @@ Graph plot of Bessel functions of the first kind of 0-th order **Y<sub>0</sub>(x
 
 ### MechanicalPendulum
 
-Simple model of a mechanical pendulum.
+Simulations of different types of [mechanical pendulums](https://en.wikipedia.org/wiki/Pendulum_(mechanics)):
+* [Simple pendulum](https://en.wikipedia.org/wiki/Pendulum_(mechanics)#Simple_gravity_pendulum)
+* [Elastic pendulum](https://en.wikipedia.org/wiki/Elastic_pendulum)
+* [Coupled pendulums](https://en.wikipedia.org/wiki/Pendulum_(mechanics)#Coupled_pendula)
 
-![MechanicalPendulum screenshot](images/MechanicalPendulum.png)
+![MechanicalPendulum screenshot 1](images/MechanicalPendulum1.png)
+
+![MechanicalPendulum screenshot 2](images/MechanicalPendulum2.png)
+
+![MechanicalPendulum screenshot 3](images/MechanicalPendulum3.png)
 
 ### WaveView
 
