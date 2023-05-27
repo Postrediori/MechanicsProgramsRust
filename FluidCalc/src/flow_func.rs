@@ -10,6 +10,8 @@ type DFunc = fn(f64)->f64;
 
 // Direct functions
 
+pub type DirectFunc = fn(f64)->f64;
+
 pub fn tau(lambda: f64) -> f64 {
     1.0 - lambda * lambda * (K - 1.0) / (K + 1.0)
 }
@@ -50,15 +52,18 @@ fn iterate_lookup(lookup_val: f64, start_x: f64, func: Func, dfunc_dx: DFunc) ->
     xn
 }
 
-pub fn lambda_tau(tau: f64) -> f64 {
-    ((K + 1.0) * (1.0 - tau) / (K - 1.0)).sqrt()
+pub type LambdaFuncResult = (f64, Option<f64>);
+pub type InverseFunc = fn(f64)->LambdaFuncResult;
+
+pub fn lambda_tau(tau: f64) -> LambdaFuncResult {
+    (((K + 1.0) * (1.0 - tau) / (K - 1.0)).sqrt(), None)
 }
 
-pub fn lambda_pi(pi: f64) -> f64 {
+pub fn lambda_pi(pi: f64) -> LambdaFuncResult {
     lambda_tau(pi.powf((K - 1.0) / K))
 }
 
-pub fn lambda_eps(eps: f64) -> f64 {
+pub fn lambda_eps(eps: f64) -> LambdaFuncResult {
     lambda_tau(eps.powf(K - 1.0))
 }
 
@@ -78,9 +83,9 @@ fn lambda_q_solution(qc: f64, solution: i32) -> f64 {
     iterate_lookup(qc, xn, q, dq_dx)
 }
 
-pub fn lambda_q(q: f64) -> (f64, f64) {
+pub fn lambda_q(q: f64) -> LambdaFuncResult {
     (lambda_q_solution(q, SOLUTION_1),
-        lambda_q_solution(q, SOLUTION_2))
+        Some(lambda_q_solution(q, SOLUTION_2)))
 }
 
 fn dphi_dx(lambda: f64) -> f64 {
@@ -97,9 +102,9 @@ fn lambda_phi_solution(phi_c: f64, solution: i32) -> f64 {
     iterate_lookup(phi_c, xn, phi, dphi_dx)
 }
 
-pub fn lambda_phi(phi: f64) -> (f64, f64) {
+pub fn lambda_phi(phi: f64) -> LambdaFuncResult {
     (lambda_phi_solution(phi, SOLUTION_1),
-        lambda_phi_solution(phi, SOLUTION_2))
+        Some(lambda_phi_solution(phi, SOLUTION_2)))
 }
 
 fn dy_dx(lambda: f64) -> f64 {
@@ -109,7 +114,7 @@ fn dy_dx(lambda: f64) -> f64 {
     c * (1.0 + 2.0 * a * lambda * lambda) / tau(lambda)
 }
 
-pub fn lambda_y(y_c: f64) -> f64 {
+pub fn lambda_y(y_c: f64) -> LambdaFuncResult {
     const Y_START: f64 = 1.0;
-    iterate_lookup(y_c, Y_START, y, dy_dx)
+    (iterate_lookup(y_c, Y_START, y, dy_dx), None)
 }
