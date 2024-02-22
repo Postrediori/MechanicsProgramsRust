@@ -4,6 +4,7 @@ mod pendulum_model;
 mod simple_pendulum;
 mod elastic_pendulum;
 mod coupled_pendulums;
+mod double_pendulum;
 mod param_table_widget;
 
 use param_list::{ParamList, Parametrized};
@@ -11,6 +12,7 @@ use pendulum_model::{PendulumModel, ParametrizedModel};
 use simple_pendulum::SimplePendulumModel;
 use elastic_pendulum::ElasticPendulumModel;
 use coupled_pendulums::CoupledPendulumsModel;
+use double_pendulum::DoublePendulumModel;
 use param_table_widget::ParamTableWidget;
 
 use fltk::{*, prelude::*};
@@ -80,6 +82,7 @@ fn main() {
             Box::from(SimplePendulumModel::new()),
             Box::from(ElasticPendulumModel::new()),
             Box::from(CoupledPendulumsModel::new()),
+            Box::from(DoublePendulumModel::new()),
         ],
     };
 

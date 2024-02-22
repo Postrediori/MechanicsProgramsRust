@@ -35,12 +35,15 @@ Simulations of different types of [mechanical pendulums](https://en.wikipedia.or
 * [Simple pendulum](https://en.wikipedia.org/wiki/Pendulum_(mechanics)#Simple_gravity_pendulum)
 * [Elastic pendulum](https://en.wikipedia.org/wiki/Elastic_pendulum)
 * [Coupled pendulums](https://en.wikipedia.org/wiki/Pendulum_(mechanics)#Coupled_pendula)
+* [Double pendulum](https://en.wikipedia.org/wiki/Double_pendulum). Iterative model by D’Alessio (2022), https://doi.org/10.1088/1361-6404/ac986b
 
 ![MechanicalPendulum screenshot 1](images/MechanicalPendulum1.png)
 
 ![MechanicalPendulum screenshot 2](images/MechanicalPendulum2.png)
 
 ![MechanicalPendulum screenshot 3](images/MechanicalPendulum3.png)
+
+![Double Pendulum screenshot](images/DoublePendulum.gif)
 
 ### WaveView
 
