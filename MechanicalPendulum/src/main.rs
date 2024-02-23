@@ -108,31 +108,15 @@ fn main() {
 
     const MODEL_SIZE: i32 = HEIGHT - MARGIN*2;
     let mut model_widget = frame::Frame::default()
-        .with_size(MODEL_SIZE, MODEL_SIZE)
-        .with_pos(MARGIN, MARGIN);
-
-    let offs = draw::Offscreen::new(model_widget.w(), model_widget.h()).unwrap();
-    let offs = Rc::from(RefCell::from(offs));
-
-    model_widget.draw({
-        let models = models.clone();
-        let offs = offs.clone();
-        move |w| {
-            let models = models.borrow_mut();
-            let offs = offs.borrow_mut();
-            
-            models.draw(w.w(), w.h(), &offs);
-            
-            offs.copy(w.x(), w.y(), w.w(), w.h(), 0, 0);
-        }
-    });
+        .with_size(MODEL_SIZE, MODEL_SIZE);
 
     // Controls panel
     let mut controls_column = group::Flex::default_fill().column();
+    controls_column.set_margin(MARGIN);
 
     // Spacer
     let mut spacer = frame::Frame::default();
-    controls_column.set_size(&mut spacer, 25);
+    controls_column.set_size(&mut spacer, 15);
 
     // Model selector
     let mut model_select_group;
@@ -161,7 +145,7 @@ fn main() {
 
     // Spacer
     let mut spacer = frame::Frame::default();
-    controls_column.set_size(&mut spacer, 25);
+    controls_column.set_size(&mut spacer, 15);
 
     // Parameters section
     let mut table;
@@ -200,7 +184,7 @@ fn main() {
 
     // Spacer
     let mut spacer = frame::Frame::default();
-    controls_column.set_size(&mut spacer, 25);
+    controls_column.set_size(&mut spacer, 15);
 
     // Model controls
     let mut step_btn;
@@ -259,6 +243,23 @@ fn main() {
     main_layout.end();
 
     wind.end();
+
+    let offs = draw::Offscreen::new(model_widget.w(), model_widget.h()).unwrap();
+    let offs = Rc::from(RefCell::from(offs));
+
+    model_widget.draw({
+        let models = models.clone();
+        let offs = offs.clone();
+        move |w| {
+            let models = models.borrow_mut();
+            let offs = offs.borrow_mut();
+            
+            models.draw(w.w(), w.h(), &offs);
+            
+            offs.copy(w.x(), w.y(), w.w(), w.h(), 0, 0);
+        }
+    });
+
     wind.show();
 
     // Initial setup

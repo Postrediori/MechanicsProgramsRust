@@ -18,7 +18,7 @@ fn pendulum_f1(omega1: f64) -> f64 {
 fn pendulum_f2(theta1: f64, omega1: f64, theta2: f64, omega2: f64) -> f64 {
     let t21 = theta2 - theta1;
     let t21s = t21.sin();
-    let a = MASS * t21s * (LENGTH * omega2.powi(2) + theta2.sin()) + MASS * (2.0 * t21).sin() * omega1.powi(2) / 2.0 - theta1.sin();
+    let a = MASS * t21s * (LENGTH * omega2.powi(2) + theta2.cos()) + MASS * (2.0 * t21).sin() * omega1.powi(2) / 2.0 - theta1.sin();
     let b = 1.0 + MASS * t21s.powi(2);
     a / b
 }
@@ -176,8 +176,6 @@ impl PendulumModel for DoublePendulumModel {
         // Draw weights
         draw_weight(x1, y1);
         draw_weight(x2, y2);
-
-        draw::set_line_style(draw::LineStyle::Solid, 0);
 
         offs.end();
     }
