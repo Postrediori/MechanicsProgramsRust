@@ -6,6 +6,7 @@ mod elastic_pendulum;
 mod coupled_pendulums;
 mod double_pendulum;
 mod param_table_widget;
+mod frame_saver;
 
 use param_list::{ParamList, Parametrized};
 use pendulum_model::{PendulumModel, ParametrizedModel};
@@ -14,6 +15,7 @@ use elastic_pendulum::ElasticPendulumModel;
 use coupled_pendulums::CoupledPendulumsModel;
 use double_pendulum::DoublePendulumModel;
 use param_table_widget::ParamTableWidget;
+use frame_saver::FrameSaver;
 
 use fltk::{*, prelude::*};
 
@@ -39,6 +41,7 @@ pub enum Message {
     Step,
     Running,
     SelectModel(usize),
+    SaveFrame,
 }
 
 struct ModelList {
@@ -74,6 +77,22 @@ impl Parametrized for ModelList {
     }
 }
 
+trait OffscreenSaver {
+    fn save_offscreen(&mut self, offs: &mut draw::Offscreen, w: i32, h: i32);
+}
+
+impl OffscreenSaver for FrameSaver {
+    fn save_offscreen(&mut self, offs: &mut draw::Offscreen, w: i32, h: i32) {
+        match draw::capture_offscreen(offs, w, h) {
+            Ok(img) => {
+                let data = img.to_rgb_data();
+                self.save_frame(&data, img.width(), img.height());
+            }
+            Err(error) => { eprintln!("Cannot capture frame to image. Error: {}", error); }
+        }
+    }
+}
+
 fn main() {
     // Models list object
     let models = ModelList {
@@ -85,6 +104,8 @@ fn main() {
             Box::from(DoublePendulumModel::new()),
         ],
     };
+
+    let mut frame_saver = FrameSaver::new();
 
     let models = Rc::from(RefCell::from(models));
 
@@ -158,7 +179,7 @@ fn main() {
         params_group.set_margin(5);
     
         table = ParamTableWidget::new();
-        table.set_size_in_flex(&mut params_group, 140);
+        table.set_size_in_flex(&mut params_group, 160);
 
         {
             let mut row = group::Flex::default_fill().row();
@@ -229,7 +250,51 @@ fn main() {
             frame::Frame::default();
 
             row.end();
-            group.set_size(&mut row, 25);
+            group.fixed(&mut row, 25);
+        }
+
+        group.end();
+        controls_column.fixed(&mut group, 65);
+    }
+
+    // Save frames
+    let mut save_all_frames_cb;
+    {
+        let mut group = group::Flex::default_fill().column();
+        group.set_frame(enums::FrameType::BorderFrame);
+        group.set_color(enums::Color::Dark3);
+        group.set_margin(5);
+
+        {
+            let mut row = group::Flex::default_fill().row();
+
+            frame::Frame::default();
+
+            let mut save_frame_btn = button::Button::default()
+                .with_label("Save frame");
+            save_frame_btn.emit(tx, Message::SaveFrame);
+            save_frame_btn.set_tooltip("Save single frame of the simulation");
+            row.fixed(&mut save_frame_btn, 90);
+
+            frame::Frame::default();
+
+            row.end();
+            group.fixed(&mut row, 25);
+        }
+
+        {
+            let mut row = group::Flex::default_fill().row();
+
+            frame::Frame::default();
+
+            save_all_frames_cb = button::CheckButton::default()
+                .with_label("Save all frames");
+            save_all_frames_cb.set_tooltip("Save all frames of the running simulation");
+            row.fixed(&mut save_all_frames_cb, 125);
+
+            frame::Frame::default();
+
+            row.end();
             group.fixed(&mut row, 25);
         }
 
@@ -243,8 +308,10 @@ fn main() {
     main_layout.end();
 
     wind.end();
+    wind.show();
 
-    let offs = draw::Offscreen::new(model_widget.w(), model_widget.h()).unwrap();
+    let (offs_w, offs_h) = (model_widget.w(), model_widget.h());
+    let offs = draw::Offscreen::new(offs_w, offs_h).unwrap();
     let offs = Rc::from(RefCell::from(offs));
 
     model_widget.draw({
@@ -254,13 +321,11 @@ fn main() {
             let models = models.borrow_mut();
             let offs = offs.borrow_mut();
             
-            models.draw(w.w(), w.h(), &offs);
+            models.draw(offs_w, offs_h, &offs);
             
-            offs.copy(w.x(), w.y(), w.w(), w.h(), 0, 0);
+            offs.copy(w.x(), w.y(), offs_w, offs_h, 0, 0);
         }
     });
-
-    wind.show();
 
     // Initial setup
     table.copy_params_from(&models.borrow().get_params());
@@ -273,6 +338,8 @@ fn main() {
                     models.borrow_mut().copy_params_from(&table.get_params());
         
                     models.borrow_mut().restart();
+
+                    frame_saver.reset();
         
                     model_widget.redraw();
                 }
@@ -304,6 +371,10 @@ fn main() {
                 Message::Step => {
                     models.borrow_mut().step();
                     model_widget.redraw();
+
+                    if save_all_frames_cb.value() {
+                        frame_saver.save_offscreen(&mut offs.borrow_mut(), offs_w, offs_h);
+                    }
                 }
                 Message::Running => {
                     if running {
@@ -320,6 +391,9 @@ fn main() {
                     models.borrow_mut().restart();
                     table.copy_params_from(&models.borrow().get_params());
                     model_widget.redraw();
+                }
+                Message::SaveFrame => {
+                    frame_saver.save_offscreen(&mut offs.borrow_mut(), offs_w, offs_h);
                 }
             }
         }

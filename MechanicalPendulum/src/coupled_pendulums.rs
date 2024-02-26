@@ -15,6 +15,7 @@ const DT: f64 = 0.05;
 pub struct CoupledPendulumsModel {
     pub params: ParamList,
     time: f64,
+    dtime: f64,
     length: f64,
     mass: f64,
     k: f64,
@@ -24,6 +25,7 @@ pub struct CoupledPendulumsModel {
     omega2: f64,
     a: f64,
     b: f64,
+    g: f64,
 }
 
 impl CoupledPendulumsModel {
@@ -31,6 +33,9 @@ impl CoupledPendulumsModel {
         let params = ParamList::from([
             ("theta1_0", THETA1_0, "Initial angle of left pendulum"),
             ("theta2_0", THETA2_0, "Initial angle of right pendulum"),
+            ("L", LENGTH, "Pendulum length"),
+            ("mass", MASS, "Mass of each pendulum"),
+            ("k", K, "Spring constant"),
             ("g", G, "Gravitational constant"),
             ("dtime", DT, "Time step delta"),
         ]);
@@ -38,6 +43,7 @@ impl CoupledPendulumsModel {
         Self {
             params,
             time: 0.0,
+            dtime: DT,
             length: LENGTH,
             mass: MASS,
             k: K,
@@ -47,6 +53,7 @@ impl CoupledPendulumsModel {
             omega2: 0.0,
             a: 0.0,
             b: 0.0,
+            g: G,
         }
     }
 }
@@ -73,21 +80,25 @@ impl PendulumModel for CoupledPendulumsModel {
 
     fn restart(&mut self) {
         self.time = 0.0;
+        self.dtime = self.params.get_by_key("dtime");
         
         self.theta1 = self.params.get_by_key("theta1_0").to_radians();
         self.theta2 = self.params.get_by_key("theta2_0").to_radians();
 
-        self.omega1 = (self.params.get_by_key("g") / self.length).sqrt();
-        self.omega2 = (self.params.get_by_key("g") / self.length + 2.0 * self.k / self.mass).sqrt();
+        self.length = self.params.get_by_key("L");
+        self.mass = self.params.get_by_key("mass");
+        self.k = self.params.get_by_key("k");
+        self.g = self.params.get_by_key("g");
+
+        self.omega1 = (self.g / self.length).sqrt();
+        self.omega2 = (self.g / self.length + 2.0 * self.k / self.mass).sqrt();
 
         self.a = self.theta1 + self.theta2;
         self.b = self.theta1 - self.theta2;
     }
 
     fn step(&mut self) {
-        let dtime = self.params.get_by_key("dtime");
-
-        self.time += dtime;
+        self.time += self.dtime;
 
         self.theta1 = self.a * (self.omega1 * self.time).cos() / 2.0 +
             self.b * (self.omega2 * self.time).cos() / 2.0;
@@ -118,7 +129,7 @@ impl PendulumModel for CoupledPendulumsModel {
         let x0_1: i32 = w / 3;
         let x0_2: i32 = 2 * w / 3;
         let y0: i32 = h / 4;
-        let l: i32 = h / 3;
+        let l: f64 = self.length * (h / 3) as f64;
 
         // Draw labels
         draw::set_draw_color(TEXT_COLOR);
@@ -137,19 +148,19 @@ impl PendulumModel for CoupledPendulumsModel {
     
         // Coordinates of pendulums
         let angle1: f64 = (90 as f64).to_radians() - self.theta1;
-        let x1: i32 = (x0_1 as f64 + (l as f64) * (angle1).cos()) as i32;
-        let y1: i32 = (y0 as f64 + (l as f64) * (angle1).sin()) as i32;
+        let x1: i32 = (x0_1 as f64 + l * (angle1).cos()) as i32;
+        let y1: i32 = (y0 as f64 + l * (angle1).sin()) as i32;
 
         let angle2: f64 = (90 as f64).to_radians() - self.theta2;
-        let x2: i32 = (x0_2 as f64 + (l as f64) * (angle2).cos()) as i32;
-        let y2: i32 = (y0 as f64 + (l as f64) * (angle2).sin()) as i32;
+        let x2: i32 = (x0_2 as f64 + l * (angle2).cos()) as i32;
+        let y2: i32 = (y0 as f64 + l * (angle2).sin()) as i32;
 
         // Draw vertical axis
         draw_axis(x0_1, y0,
-            x0_1, y0 + ((l as f64) * 1.25) as i32);
+            x0_1, y0 + (l * 1.25) as i32);
 
         draw_axis(x0_2, y0,
-            x0_2, y0 + ((l as f64) * 1.25) as i32);
+            x0_2, y0 + (l * 1.25) as i32);
 
         // Draw linking spring
         const SPRING_WIDTH: i32 = 10;

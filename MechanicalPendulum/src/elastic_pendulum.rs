@@ -16,6 +16,7 @@ const DT: f64 = 0.05;
 pub struct ElasticPendulumModel {
     params: ParamList,
     time: f64,
+    dtime: f64,
     length: f64,
     mass: f64,
     k: f64,
@@ -25,12 +26,14 @@ pub struct ElasticPendulumModel {
     x: f64,
     x_v: f64,
     x_a: f64,
+    g: f64,
 }
 
 impl ElasticPendulumModel {
     pub fn new() -> Self {
         let params = ParamList::from([
             ("theta0", THETA_0, "Initial pendulum angle"),
+            ("L", LENGTH, "Spring rest length"),
             ("x0", X_0, "Initial spring stretch"),
             ("g", G, "Gravitational constant"),
             ("dtime", DT, "Time step delta"),
@@ -39,6 +42,7 @@ impl ElasticPendulumModel {
         Self {
             params,
             time: 0.0,
+            dtime: DT,
             length: LENGTH,
             mass: MASS,
             k: K,
@@ -48,6 +52,7 @@ impl ElasticPendulumModel {
             x: 0.0,
             x_v: 0.0,
             x_a: 0.0,
+            g: G,
         }
     }
 }
@@ -74,6 +79,9 @@ impl PendulumModel for ElasticPendulumModel {
 
     fn restart(&mut self) {
         self.time = 0.0;
+        self.dtime = self.params.get_by_key("dtime");
+
+        self.length = self.params.get_by_key("L");
 
         self.theta = self.params.get_by_key("theta0").to_radians();
         self.theta_v = 0.0;
@@ -82,27 +90,26 @@ impl PendulumModel for ElasticPendulumModel {
         self.x = self.params.get_by_key("x0");
         self.x_v = 0.0;
         self.x_a = 0.0;
+
+        self.g = self.params.get_by_key("g");
     }
 
     fn step(&mut self) {
-        let g = self.params.get_by_key("g");
-        let dtime = self.params.get_by_key("dtime");
-
-        self.time += dtime;
+        self.time += self.dtime;
 
         let l = self.length + self.x;
 
         self.x_a = l * (self.theta_v * self.theta_v) -
             self.k * self.x / self.mass +
-            g * self.theta.cos();
+            self.g * self.theta.cos();
         
-        self.theta_a = -(g * self.theta.sin() + 2.0 * self.x_v * self.theta_v) / l;
+        self.theta_a = -(self.g * self.theta.sin() + 2.0 * self.x_v * self.theta_v) / l;
 
-        self.x_v += self.x_a * dtime;
-        self.x += self.x_v * dtime;
+        self.x_v += self.x_a * self.dtime;
+        self.x += self.x_v * self.dtime;
 
-        self.theta_v += self.theta_a * dtime;
-        self.theta += self.theta_v * dtime;
+        self.theta_v += self.theta_a * self.dtime;
+        self.theta += self.theta_v * self.dtime;
     }
 
     fn draw(&self, w: i32, h: i32, offs: &draw::Offscreen) {
@@ -139,17 +146,17 @@ impl PendulumModel for ElasticPendulumModel {
         // Coordinates of the pivotal point
         let x0: i32 = w / 2;
         let y0: i32 = h / 4;
-        let l0: i32 = h / 3;
-        let l: i32 = (l0 as f64 * (1.0 + self.x)) as i32;
+        let l0: f64 = self.length * (h / 3) as f64;
+        let l: f64 = l0 * (1.0 + self.x);
     
         // Coordinates of the weight
         let angle: f64 = (90 as f64).to_radians() - self.theta;
-        let x1: i32 = (x0 as f64 + (l as f64) * (angle).cos()) as i32;
-        let y1: i32 = (y0 as f64 + (l as f64) * (angle).sin()) as i32;
+        let x1: i32 = (x0 as f64 + l * (angle).cos()) as i32;
+        let y1: i32 = (y0 as f64 + l * (angle).sin()) as i32;
     
         // Draw vertical axis
         draw_axis(x0, y0,
-            x0, y0 + ((l0 as f64) * 1.25) as i32);
+            x0, y0 + (l0 * 1.25) as i32);
 
         // Draw rest
         const FIX_WIDTH: i32 = 90;

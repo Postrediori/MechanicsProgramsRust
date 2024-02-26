@@ -13,16 +13,19 @@ const DT: f64 = 0.05;
 pub struct SimplePendulumModel {
     pub params: ParamList,
     time: f64,
+    dtime: f64,
     theta: f64,
     theta_v: f64,
     theta_a: f64,
     length: f64,
+    g: f64,
 }
 
 impl SimplePendulumModel {
     pub fn new() -> Self {
         let params = ParamList::from([
             ("theta0", THETA_0, "Initial pendulum angle"),
+            ("L", LENGTH, "Pendulum length"),
             ("g", G, "Gravitational constant"),
             ("dtime", DT, "Time step delta"),
         ]);
@@ -30,23 +33,13 @@ impl SimplePendulumModel {
         Self {
             params,
             time: 0.0,
+            dtime: DT,
             theta: 0.0,
             theta_v: 0.0,
             theta_a: 0.0,
             length: LENGTH,
+            g: G,
         }
-    }
-
-    fn theta0(&self) -> f64 {
-        self.params.get_by_key("theta0")
-    }
-
-    fn g(&self) -> f64 {
-        self.params.get_by_key("g")
-    }
-
-    fn dtime(&self) -> f64 {
-        self.params.get_by_key("dtime")
     }
 }
 
@@ -72,16 +65,19 @@ impl PendulumModel for SimplePendulumModel {
 
     fn restart(&mut self) {
         self.time = 0.0;
-        self.theta = self.theta0().to_radians();
+        self.dtime = self.params.get_by_key("dtime");
+        self.theta = self.params.get_by_key("theta0").to_radians();
         self.theta_v = 0.0;
         self.theta_a = 0.0;
+        self.length = self.params.get_by_key("L");
+        self.g = self.params.get_by_key("g");
     }
 
     fn step(&mut self) {
-        self.time += self.dtime();
-        self.theta_a = -self.g() * self.theta.sin() / self.length;
-        self.theta_v += self.theta_a * self.dtime();
-        self.theta += self.theta_v * self.dtime();
+        self.time += self.dtime;
+        self.theta_a = -self.g * self.theta.sin() / self.length;
+        self.theta_v += self.theta_a * self.dtime;
+        self.theta += self.theta_v * self.dtime;
     }
 
     fn draw(&self, w: i32, h: i32, offs: &draw::Offscreen) {
@@ -118,16 +114,16 @@ impl PendulumModel for SimplePendulumModel {
         // Coordinates of the pivotal point
         let x0: i32 = w / 2;
         let y0: i32 = h / 4;
-        let l: i32 = h / 2;
+        let l: f64 = self.length * ((h / 2) as f64);
     
         // Coordinates of the weight
         let angle: f64 = (90 as f64).to_radians() - self.theta;
-        let x1: i32 = (x0 as f64 + (l as f64) * (angle).cos()) as i32;
-        let y1: i32 = (y0 as f64 + (l as f64) * (angle).sin()) as i32;
+        let x1: i32 = (x0 as f64 + l * (angle).cos()) as i32;
+        let y1: i32 = (y0 as f64 + l * (angle).sin()) as i32;
     
         // Draw vertical axis
         draw_axis(x0, y0,
-            x0, y0 + ((l as f64) * 1.25) as i32);
+            x0, y0 + (l * 1.25) as i32);
 
         // Draw rest
         const FIX_WIDTH: i32 = 90;

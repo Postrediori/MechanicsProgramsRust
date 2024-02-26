@@ -5,6 +5,8 @@ use crate::param_list::*;
 use std::cell::RefCell;
 use std::rc::Rc;
 
+const COLUMN_WIDTH: i32 = 68;
+
 struct ParamTableWidgetInner {
     table: table::Table,
     input: input::FloatInput,
@@ -82,8 +84,8 @@ impl ParamTableWidget {
         table.set_row_header(true);
         table.set_cols(1);
         table.set_col_header(true);
-        table.set_col_width(0, 75);
-        table.set_row_header_width(75);
+        table.set_col_width(0, COLUMN_WIDTH);
+        table.set_row_header_width(COLUMN_WIDTH);
 
         let mut cell_input = input::FloatInput::default();
         cell_input.set_trigger(enums::CallbackTrigger::EnterKeyAlways);
@@ -145,7 +147,7 @@ impl ParamTableWidget {
     }
 
     pub fn set_size_in_flex(&mut self, flex: &mut group::Flex, size: i32) {
-        flex.set_size(&mut self.inner.borrow_mut().table, size);
+        flex.fixed(&mut self.inner.borrow_mut().table, size);
     }
 
     pub fn activate(&mut self) {
