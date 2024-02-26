@@ -44,7 +44,7 @@ impl DirectFuncTab {
             let mut row = group::Flex::default_fill().row();
 
             let mut label = frame::Frame::default().with_label("lambda = ");
-            row.set_size(&mut label, 75);
+            row.fixed(&mut label, 75);
 
             in_lambda = input::FloatInput::default();
             in_lambda.set_value(&format!("{:.4}", 1.0));
@@ -52,7 +52,7 @@ impl DirectFuncTab {
 
             row.end();
 
-            group.set_size(&mut row, 30); 
+            group.fixed(&mut row, 30); 
         }
 
         // Calc row
@@ -66,13 +66,13 @@ impl DirectFuncTab {
                 .with_label("Calculate");
             btn_calc.emit(*tx, Message::CalculateDirect);
 
-            row.set_size(&mut btn_calc, 125);
+            row.fixed(&mut btn_calc, 125);
 
             frame::Frame::default();
 
             row.end();
 
-            group.set_size(&mut row, 30); 
+            group.fixed(&mut row, 30); 
         }
 
         // Rows with function outputs
@@ -81,7 +81,7 @@ impl DirectFuncTab {
             
             let mut label = frame::Frame::default()
                 .with_label(&format!("{} =", f.0));
-            func_row.set_size(&mut label, 75);
+            func_row.fixed(&mut label, 75);
 
             let mut output = output::Output::default();
             output.set_value("");
@@ -89,7 +89,7 @@ impl DirectFuncTab {
 
             func_row.end();
 
-            group.set_size(&mut func_row, 30);
+            group.fixed(&mut func_row, 30);
 
             output
         }).collect();
@@ -133,10 +133,10 @@ impl InverseFuncTab {
             }
             func_choice.set_tooltip("Choose the flow function");
             func_choice.set_value(0);
-            row.set_size(&mut func_choice, 75);
+            row.fixed(&mut func_choice, 75);
 
             let mut label = frame::Frame::default().with_label(" = ");
-            row.set_size(&mut label, 25);
+            row.fixed(&mut label, 25);
 
             input = input::FloatInput::default();
             input.set_value(&format!("{:.4}", 1.0));
@@ -144,7 +144,7 @@ impl InverseFuncTab {
 
             row.end();
 
-            group.set_size(&mut row, 30); 
+            group.fixed(&mut row, 30); 
         }
 
         // Calc row
@@ -158,13 +158,13 @@ impl InverseFuncTab {
                 .with_label("Calculate");
             btn_calc2.emit(*tx, Message::CalculateInverse);
             
-            row.set_size(&mut btn_calc2, 125);
+            row.fixed(&mut btn_calc2, 125);
 
             frame::Frame::default();
 
             row.end();
 
-            group.set_size(&mut row, 30); 
+            group.fixed(&mut row, 30); 
         }
 
         let outputs = ["lambda1", "lambda2"].iter().map(|s| {
@@ -172,14 +172,14 @@ impl InverseFuncTab {
             
             let mut label = frame::Frame::default()
                 .with_label(&format!("{} =", s));
-            row.set_size(&mut label, 75);
+            row.fixed(&mut label, 75);
 
             let mut output = output::Output::default();
             output.set_tooltip("Dimensionless velocity lambda");
 
             row.end();
 
-            group.set_size(&mut row, 30);
+            group.fixed(&mut row, 30);
 
             output
         }).collect();

@@ -116,7 +116,7 @@ fn main() {
 
     // Spacer
     let mut spacer = frame::Frame::default();
-    controls_column.set_size(&mut spacer, 15);
+    controls_column.fixed(&mut spacer, 15);
 
     // Model selector
     let mut model_select_group;
@@ -135,17 +135,17 @@ fn main() {
                 btn.set_value(true);
             }
 
-            model_select_group.set_size(&mut btn, 25);
+            model_select_group.fixed(&mut btn, 25);
         }
 
         model_select_group.end();
 
-        controls_column.set_size(&mut model_select_group, models.borrow().models.len() as i32 * 30 + 5);
+        controls_column.fixed(&mut model_select_group, models.borrow().models.len() as i32 * 30 + 5);
     }
 
     // Spacer
     let mut spacer = frame::Frame::default();
-    controls_column.set_size(&mut spacer, 15);
+    controls_column.fixed(&mut spacer, 15);
 
     // Parameters section
     let mut table;
@@ -169,22 +169,22 @@ fn main() {
                 .with_label("@refresh Apply @refresh");
             apply_btn.set_tooltip("Apply parameters and restart the model");
             apply_btn.emit(tx, Message::Apply);
-            row.set_size(&mut apply_btn, 90);
+            row.fixed(&mut apply_btn, 90);
 
             frame::Frame::default();
 
             row.end();
-            params_group.set_size(&mut row, 25);
+            params_group.fixed(&mut row, 25);
         }
 
         params_group.end();
 
-        controls_column.set_size(&mut params_group, 185);
+        controls_column.fixed(&mut params_group, 205);
     }
 
     // Spacer
     let mut spacer = frame::Frame::default();
-    controls_column.set_size(&mut spacer, 15);
+    controls_column.fixed(&mut spacer, 15);
 
     // Model controls
     let mut step_btn;
@@ -202,16 +202,15 @@ fn main() {
             frame::Frame::default();
 
             step_btn = button::Button::default()
-                .with_size(90, 25)
                 .with_label("@>| Step @>|");
             step_btn.set_tooltip("Perform one step of the simulation");
             step_btn.emit(tx, Message::Step);
-            row.set_size(&mut step_btn, 90);
+            row.fixed(&mut step_btn, 90);
 
             frame::Frame::default();
 
             row.end();
-            group.set_size(&mut row, 25);
+            group.fixed(&mut row, 25);
         }
 
         {
@@ -223,7 +222,7 @@ fn main() {
                 .with_label("@> Start @>");
             start_stop_btn.set_tooltip("Start/Stop the simulation");
             start_stop_btn.emit(tx, Message::StartStop);
-            row.set_size(&mut start_stop_btn, 90);
+            row.fixed(&mut start_stop_btn, 90);
 
             app::set_focus(&start_stop_btn);
 
@@ -231,14 +230,15 @@ fn main() {
 
             row.end();
             group.set_size(&mut row, 25);
+            group.fixed(&mut row, 25);
         }
 
         group.end();
-        controls_column.set_size(&mut group, 65);
+        controls_column.fixed(&mut group, 65);
     }
 
     controls_column.end();
-    main_layout.set_size(&mut controls_column, WIDTH-MODEL_WIDGET_SIZE-MARGIN*3);
+    main_layout.fixed(&mut controls_column, WIDTH-MODEL_WIDGET_SIZE-MARGIN*3);
 
     main_layout.end();
 

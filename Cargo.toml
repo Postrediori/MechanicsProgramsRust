@@ -1,2 +1,3 @@
 [workspace]
+resolver = "2"
 members = ["BesselGraph", "FluidCalc", "FluidView", "MechanicalPendulum", "MediaWave", "WaveView"]
