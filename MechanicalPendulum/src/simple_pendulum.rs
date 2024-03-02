@@ -24,10 +24,10 @@ pub struct SimplePendulumModel {
 impl SimplePendulumModel {
     pub fn new() -> Self {
         let params = ParamList::from([
-            ("theta0", THETA_0, "Initial pendulum angle"),
-            ("L", LENGTH, "Pendulum length"),
-            ("g", G, "Gravitational constant"),
-            ("dtime", DT, "Time step delta"),
+            ("theta0", "θ(0)", THETA_0, "Initial pendulum angle"),
+            ("L", "L", LENGTH, "Pendulum length"),
+            ("g", "g", G, "Gravitational constant"),
+            ("dtime", "ΔT", DT, "Time step delta"),
         ]);
 
         Self {

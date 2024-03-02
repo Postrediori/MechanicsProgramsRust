@@ -32,11 +32,11 @@ pub struct ElasticPendulumModel {
 impl ElasticPendulumModel {
     pub fn new() -> Self {
         let params = ParamList::from([
-            ("theta0", THETA_0, "Initial pendulum angle"),
-            ("L", LENGTH, "Spring rest length"),
-            ("x0", X_0, "Initial spring stretch"),
-            ("g", G, "Gravitational constant"),
-            ("dtime", DT, "Time step delta"),
+            ("theta0", "θ(0)", THETA_0, "Initial pendulum angle"),
+            ("L", "L", LENGTH, "Spring rest length"),
+            ("x0", "x(0)", X_0, "Initial spring stretch"),
+            ("g", "g", G, "Gravitational constant"),
+            ("dtime", "ΔT", DT, "Time step delta"),
         ]);
 
         Self {

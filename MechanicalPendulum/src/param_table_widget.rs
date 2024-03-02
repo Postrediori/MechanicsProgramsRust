@@ -35,7 +35,6 @@ impl ParamTableWidgetInner {
     }
 
     fn draw_cell(&mut self, ctx: table::TableContext, row: i32, col: i32, x: i32, y: i32, width: i32, height: i32) {
-        draw::push_clip(x, y, width, height);
         match ctx {
         table::TableContext::StartPage => draw::set_font(enums::Font::Helvetica, 14),
         table::TableContext::ColHeader => {
@@ -44,7 +43,7 @@ impl ParamTableWidgetInner {
         },
         table::TableContext::RowHeader => {
             // Row titles
-            draw_header(&self.params.get_key(row as usize), x, y, width, height); 
+            draw_header(&self.params.get_title(row as usize), x, y, width, height); 
         },
         table::TableContext::Cell => {
             let coord = (row, col);
@@ -68,7 +67,6 @@ impl ParamTableWidgetInner {
         }, 
         _ => (),
         }
-        draw::pop_clip();
     }
 }
 

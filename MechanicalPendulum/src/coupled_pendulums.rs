@@ -31,13 +31,13 @@ pub struct CoupledPendulumsModel {
 impl CoupledPendulumsModel {
     pub fn new() -> Self {
         let params = ParamList::from([
-            ("theta1_0", THETA1_0, "Initial angle of left pendulum"),
-            ("theta2_0", THETA2_0, "Initial angle of right pendulum"),
-            ("L", LENGTH, "Pendulum length"),
-            ("mass", MASS, "Mass of each pendulum"),
-            ("k", K, "Spring constant"),
-            ("g", G, "Gravitational constant"),
-            ("dtime", DT, "Time step delta"),
+            ("theta1_0", "θ1(0)", THETA1_0, "Initial angle of left pendulum"),
+            ("theta2_0", "θ2(0)", THETA2_0, "Initial angle of right pendulum"),
+            ("L", "L", LENGTH, "Pendulum length"),
+            ("mass", "m", MASS, "Mass of each pendulum"),
+            ("k", "k", K, "Spring constant"),
+            ("g", "g", G, "Gravitational constant"),
+            ("dtime", "ΔT", DT, "Time step delta"),
         ]);
 
         Self {
