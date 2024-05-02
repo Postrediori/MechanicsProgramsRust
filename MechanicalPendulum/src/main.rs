@@ -7,6 +7,7 @@ mod coupled_pendulums;
 mod double_pendulum;
 mod param_table_widget;
 mod frame_saver;
+mod res;
 
 use param_list::{ParamList, Parametrized};
 use pendulum_model::{PendulumModel, ParametrizedModel};
@@ -16,6 +17,7 @@ use coupled_pendulums::CoupledPendulumsModel;
 use double_pendulum::DoublePendulumModel;
 use param_table_widget::ParamTableWidget;
 use frame_saver::FrameSaver;
+use res::IconsAssets;
 
 use fltk::{*, prelude::*};
 
@@ -306,6 +308,12 @@ fn main() {
     main_layout.fixed(&mut controls_column, WIDTH-MODEL_WIDGET_SIZE-MARGIN*3);
 
     main_layout.end();
+
+    if let Some(img) = IconsAssets::get("MechanicalPendulum32.png") {
+        if let Ok(img) = fltk::image::PngImage::from_data(img.data.as_ref()) {
+            wind.set_icon(Some(img));
+        }
+    }
 
     wind.end();
     wind.show();

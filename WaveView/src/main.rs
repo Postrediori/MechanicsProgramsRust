@@ -10,6 +10,7 @@ mod surface_functions;
 mod wave_model;
 mod wave_widget;
 mod main_window;
+mod res;
 
 const REDRAW_DT: u64 = 16;
 

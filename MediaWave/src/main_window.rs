@@ -2,6 +2,7 @@ use fltk::{*, prelude::*};
 
 use crate::{plot_widget::PlotWidget, pipe_model::{PipeModel, BOUNDARY_OPEN, BOUNDARY_SEALED}};
 use crate::frame_saver::FrameSaver;
+use crate::res::IconsAssets;
 
 const MARGIN: i32 = 10;
 pub struct MainWindow {
@@ -28,7 +29,7 @@ pub struct MainWindow {
 
 impl MainWindow {
     pub fn make_window(w: i32, h: i32, title: &str) -> Self {
-        let wind = window::Window::default()
+        let mut wind = window::Window::default()
             .with_size(w, h).center_screen()
             .with_label(title);
 
@@ -171,6 +172,12 @@ impl MainWindow {
         btn_save_all_frames.set_tooltip("Save all frames of the running simulation (this will slow down the program a lot!)");
 
         g_capture.end();
+
+        if let Some(img) = IconsAssets::get("MediaWave32.png") {
+            if let Ok(img) = fltk::image::PngImage::from_data(img.data.as_ref()) {
+                wind.set_icon(Some(img));
+            }
+        }
 
         wind.end();
 

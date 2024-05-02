@@ -2,8 +2,12 @@
 name = "mechanical_pendulum"
 version = "1.0.0"
 edition = "2021"
+build = "build.rs"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[target.'cfg(windows)'.build-dependencies]
+winres = "0.1"
 
 [target.'cfg(target_arch = "x86")'.dependencies]
 fltk = { version = "^1.3.34" }
@@ -13,3 +17,4 @@ fltk = { version = "^1.3.34", features = ["fltk-bundled"] }
 
 [dependencies]
 image = "^0.24.6"
+rust-embed = "8.3"

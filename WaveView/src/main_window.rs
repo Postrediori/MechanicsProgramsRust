@@ -3,6 +3,8 @@ use fltk::{*, prelude::{*}};
 use crate::wave_model::WaveModel;
 use crate::wave_widget::WaveWidget;
 
+use crate::res::IconsAssets;
+
 const WIDTH: i32 = 700;
 const HEIGHT: i32 = 500;
 
@@ -142,6 +144,12 @@ impl MainWindow {
         btn_save_all_frames.set_tooltip("Save all frames of the running simulation (this will slow down the program a lot!)");
 
         g_capture.end();
+
+        if let Some(img) = IconsAssets::get("WaveView32.png") {
+            if let Ok(img) = fltk::image::PngImage::from_data(img.data.as_ref()) {
+                wind.set_icon(Some(img));
+            }
+        }
 
         wind.end();
         wind.show();

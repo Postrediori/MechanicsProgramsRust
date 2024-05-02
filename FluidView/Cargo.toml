@@ -2,11 +2,18 @@
 name = "fluid_view"
 version = "1.0.0"
 edition = "2021"
+build = "build.rs"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[target.'cfg(windows)'.build-dependencies]
+winres = "0.1"
 
 [target.'cfg(target_arch = "x86")'.dependencies]
 fltk = { version = "1" }
 
 [target.'cfg(target_arch = "x86_64")'.dependencies]
 fltk = { version = "1", features = ["fltk-bundled"] }
+
+[dependencies]
+rust-embed = "8.3"

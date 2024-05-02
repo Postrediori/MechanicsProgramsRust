@@ -1,14 +1,16 @@
 mod fluid_func;
 mod graph_widget;
+mod res;
 
 use fltk::{
     app,
     button,
     input,
-    prelude::{DisplayExt, GroupExt, InputExt, WidgetExt},
+    prelude::{DisplayExt, GroupExt, InputExt, WidgetExt, WindowExt},
     text,
     window
 };
+use res::IconsAssets;
 
 const WIDTH: i32 = 700;
 const HEIGHT: i32 = 500;
@@ -68,6 +70,12 @@ fn main() {
         
         set_q_value(q_val);
     });
+
+    if let Some(img) = IconsAssets::get("FluidView32.png") {
+        if let Ok(img) = fltk::image::PngImage::from_data(img.data.as_ref()) {
+            wind.set_icon(Some(img));
+        }
+    }
 
     wind.end();
     wind.show();

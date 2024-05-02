@@ -2,6 +2,8 @@ mod bessel_func;
 mod plot_widget;
 use plot_widget::{Area, PlotWidget, PlotLines, PlotFunctionInfo};
 
+mod res;use res::IconsAssets;
+
 use fltk::{*, prelude::*};
 
 use std::thread;
@@ -191,7 +193,13 @@ fn main() {
     let mut plot_widget = PlotWidget::new(0, 0, 100, 100);
 
     main_layout.end();
-    
+
+    if let Some(img) = IconsAssets::get("BesselGraph32.png") {
+        if let Ok(img) = fltk::image::PngImage::from_data(img.data.as_ref()) {
+            wind.set_icon(Some(img));
+        }
+    }
+
     wind.end();
 
     let (tx, rx) = app::channel::<Message>();

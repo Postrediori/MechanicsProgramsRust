@@ -1,6 +1,9 @@
 mod flow_func;
-
 use flow_func::*;
+
+mod res;
+use res::IconsAssets;
+
 use fltk::{
     app,
     button,
@@ -9,7 +12,7 @@ use fltk::{
     group,
     menu,
     output,
-    prelude::{InputExt, GroupExt, MenuExt, WidgetBase, WidgetExt},
+    prelude::{InputExt, GroupExt, MenuExt, WidgetBase, WidgetExt, WindowExt},
     window,
 };
 
@@ -231,7 +234,13 @@ fn main() {
     let mut inverse_tab = InverseFuncTab::new(&inverse_functions, &tx, &tabs);
 
     tabs.end();
-    
+
+    if let Some(img) = IconsAssets::get("FluidCalc32.png") {
+        if let Ok(img) = fltk::image::PngImage::from_data(img.data.as_ref()) {
+            wind.set_icon(Some(img));
+        }
+    }
+
     wind.end();
     wind.show();
 

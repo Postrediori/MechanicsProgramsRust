@@ -9,6 +9,7 @@ use std::{thread, time::Duration};
 mod pipe_model;
 mod plot_widget;
 mod main_window;
+mod res;
 
 use crate::pipe_model::PipeModel;
 use crate::main_window::MainWindow;
