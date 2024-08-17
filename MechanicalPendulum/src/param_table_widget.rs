@@ -1,4 +1,4 @@
-use fltk::{*, prelude::*};
+use fltk::{prelude::*, *};
 
 use crate::param_list::*;
 
@@ -16,7 +16,7 @@ struct ParamTableWidgetInner {
 
 impl ParamTableWidgetInner {
     fn start_editing(&mut self, row: i32, col: i32) {
-        self.edit_cell = Some( (row, col) );
+        self.edit_cell = Some((row, col));
     }
 
     fn finish_editing(&mut self) {
@@ -28,44 +28,68 @@ impl ParamTableWidgetInner {
             };
             self.edit_cell = None;
             self.input.hide();
-            
+
             // Prevent mouse cursor from remaining hidden after pressing Enter.
-            self.input.window().unwrap().set_cursor(enums::Cursor::Default);
+            self.input
+                .window()
+                .unwrap()
+                .set_cursor(enums::Cursor::Default);
         }
     }
 
-    fn draw_cell(&mut self, ctx: table::TableContext, row: i32, col: i32, x: i32, y: i32, width: i32, height: i32) {
+    fn draw_cell(
+        &mut self,
+        ctx: table::TableContext,
+        row: i32,
+        col: i32,
+        x: i32,
+        y: i32,
+        width: i32,
+        height: i32,
+    ) {
         match ctx {
-        table::TableContext::StartPage => draw::set_font(enums::Font::Helvetica, 14),
-        table::TableContext::ColHeader => {
-            // Column titles
-            draw_header("Value", x, y, width, height)
-        },
-        table::TableContext::RowHeader => {
-            // Row titles
-            draw_header(&self.params.get_title(row as usize), x, y, width, height); 
-        },
-        table::TableContext::Cell => {
-            let coord = (row, col);
-            if self.edit_cell == Some(coord) {
-                self.input.resize(x, y, width, height);
-                self.input.show();
-                
-                self.input.set_value(&format!("{:.4}", self.params.get(row as usize)));
-                self.input.set_tooltip(&self.params.get_tooltip(row as usize));
-                self.input.take_focus().expect("input refused focus");
-                self.input.redraw();
+            table::TableContext::StartPage => draw::set_font(enums::Font::Helvetica, 14),
+            table::TableContext::ColHeader => {
+                // Column titles
+                draw_header("Value", x, y, width, height)
             }
-            else {
-                // Data in cells
-                draw_data(&format!("{:.4}", self.params.get(row as usize)),
-                    x, y, width, height,
-                    if !self.table.active() { CellState::Deactivated } else {
-                        if self.table.is_selected(row, col) { CellState::Selected } else { CellState::Normal }
-                    });
+            table::TableContext::RowHeader => {
+                // Row titles
+                draw_header(&self.params.get_title(row as usize), x, y, width, height);
             }
-        }, 
-        _ => (),
+            table::TableContext::Cell => {
+                let coord = (row, col);
+                if self.edit_cell == Some(coord) {
+                    self.input.resize(x, y, width, height);
+                    self.input.show();
+
+                    self.input
+                        .set_value(&format!("{:.4}", self.params.get(row as usize)));
+                    self.input
+                        .set_tooltip(&self.params.get_tooltip(row as usize));
+                    self.input.take_focus().expect("input refused focus");
+                    self.input.redraw();
+                } else {
+                    // Data in cells
+                    draw_data(
+                        &format!("{:.4}", self.params.get(row as usize)),
+                        x,
+                        y,
+                        width,
+                        height,
+                        if !self.table.active() {
+                            CellState::Deactivated
+                        } else {
+                            if self.table.is_selected(row, col) {
+                                CellState::Selected
+                            } else {
+                                CellState::Normal
+                            }
+                        },
+                    );
+                }
+            }
+            _ => (),
         }
     }
 }
@@ -95,53 +119,53 @@ impl ParamTableWidget {
             params: ParamList::new(),
             edit_cell: None,
         }));
-        
+
         let inner_clone = inner.clone();
-        inner.borrow_mut().input.set_callback(
-            move |_| {
-                let mut inner = inner_clone.borrow_mut();
-                inner.finish_editing();
-            }
-        );
-        
+        inner.borrow_mut().input.set_callback(move |_| {
+            let mut inner = inner_clone.borrow_mut();
+            inner.finish_editing();
+        });
+
         let inner_clone = inner.clone();
-        inner.borrow_mut().table.draw_cell(
-            move |_, ctx, row, col, x, y, width, height| {
+        inner
+            .borrow_mut()
+            .table
+            .draw_cell(move |_, ctx, row, col, x, y, width, height| {
                 match inner_clone.try_borrow_mut() {
-                    Ok(mut inner) => { inner.draw_cell(ctx, row, col, x, y, width, height); },
-                    Err(error) => { eprintln!("Error in table.draw_cell: {}", error); },
+                    Ok(mut inner) => {
+                        inner.draw_cell(ctx, row, col, x, y, width, height);
+                    }
+                    Err(error) => {
+                        eprintln!("Error in table.draw_cell: {}", error);
+                    }
                 }
-            }
-        );
+            });
 
         inner.borrow_mut().table.handle({
             let inner_clone = inner.clone();
-            move |widget, event| {
-                match inner_clone.try_borrow_mut() {
-                    Ok(mut inner) => {
-                        if event == enums::Event::Push && widget.callback_context() == table::TableContext::Cell {
-                            inner.finish_editing();
-                            if app::event_clicks() {
-                                inner.start_editing(widget.callback_row(), widget.callback_col());
-                            }
-                            widget.redraw();
-                            true
+            move |widget, event| match inner_clone.try_borrow_mut() {
+                Ok(mut inner) => {
+                    if event == enums::Event::Push
+                        && widget.callback_context() == table::TableContext::Cell
+                    {
+                        inner.finish_editing();
+                        if app::event_clicks() {
+                            inner.start_editing(widget.callback_row(), widget.callback_col());
                         }
-                        else {
-                            false
-                        }
-                    },
-                    Err(error) => {
-                        eprintln!("Error in table.handle: {}", error);
+                        widget.redraw();
+                        true
+                    } else {
                         false
-                    },
+                    }
+                }
+                Err(error) => {
+                    eprintln!("Error in table.handle: {}", error);
+                    false
                 }
             }
         });
 
-        Self {
-            inner,
-        }
+        Self { inner }
     }
 
     pub fn set_size_in_flex(&mut self, flex: &mut group::Flex, size: i32) {
@@ -168,7 +192,7 @@ impl Parametrized for ParamTableWidget {
         inner.table.set_rows(len as i32);
         inner.table.redraw();
     }
-    
+
     fn get_params(&self) -> ParamList {
         self.inner.borrow().params.clone()
     }
@@ -201,9 +225,9 @@ enum CellState {
 fn draw_data(txt: &str, x: i32, y: i32, w: i32, h: i32, state: CellState) {
     draw::push_clip(x, y, w, h);
     match state {
-    CellState::Normal => draw::set_draw_color(enums::Color::White),
-    CellState::Selected => draw::set_draw_color(enums::Color::from_u32(0x00F0_F0F0)),
-    CellState::Deactivated => draw::set_draw_color(enums::Color::from_u32(0x00D3_D3D3)),
+        CellState::Normal => draw::set_draw_color(enums::Color::White),
+        CellState::Selected => draw::set_draw_color(enums::Color::from_u32(0x00F0_F0F0)),
+        CellState::Deactivated => draw::set_draw_color(enums::Color::from_u32(0x00D3_D3D3)),
     }
     draw::draw_rectf(x, y, w, h);
     draw::set_draw_color(enums::Color::Gray0);

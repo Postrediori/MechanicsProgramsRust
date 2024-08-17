@@ -1,7 +1,7 @@
-use fltk::{enums, draw};
+use fltk::{draw, enums};
 
-use crate::param_list::*;
 use crate::draw_primitives::*;
+use crate::param_list::*;
 use crate::pendulum_model::*;
 
 const THETA1_0: f64 = 45.0;
@@ -31,8 +31,18 @@ pub struct CoupledPendulumsModel {
 impl CoupledPendulumsModel {
     pub fn new() -> Self {
         let params = ParamList::from([
-            ("theta1_0", "θ1(0)", THETA1_0, "Initial angle of left pendulum"),
-            ("theta2_0", "θ2(0)", THETA2_0, "Initial angle of right pendulum"),
+            (
+                "theta1_0",
+                "θ1(0)",
+                THETA1_0,
+                "Initial angle of left pendulum",
+            ),
+            (
+                "theta2_0",
+                "θ2(0)",
+                THETA2_0,
+                "Initial angle of right pendulum",
+            ),
             ("L", "L", LENGTH, "Pendulum length"),
             ("mass", "m", MASS, "Mass of each pendulum"),
             ("k", "k", K, "Spring constant"),
@@ -81,7 +91,7 @@ impl PendulumModel for CoupledPendulumsModel {
     fn restart(&mut self) {
         self.time = 0.0;
         self.dtime = self.params.get_by_key("dtime");
-        
+
         self.theta1 = self.params.get_by_key("theta1_0").to_radians();
         self.theta2 = self.params.get_by_key("theta2_0").to_radians();
 
@@ -100,10 +110,10 @@ impl PendulumModel for CoupledPendulumsModel {
     fn step(&mut self) {
         self.time += self.dtime;
 
-        self.theta1 = self.a * (self.omega1 * self.time).cos() / 2.0 +
-            self.b * (self.omega2 * self.time).cos() / 2.0;
-        self.theta2 = self.a * (self.omega1 * self.time).cos() / 2.0 -
-            self.b * (self.omega2 * self.time).cos() / 2.0;
+        self.theta1 = self.a * (self.omega1 * self.time).cos() / 2.0
+            + self.b * (self.omega2 * self.time).cos() / 2.0;
+        self.theta2 = self.a * (self.omega1 * self.time).cos() / 2.0
+            - self.b * (self.omega2 * self.time).cos() / 2.0;
     }
 
     fn draw(&self, w: i32, h: i32, offs: &draw::Offscreen) {
@@ -138,14 +148,28 @@ impl PendulumModel for CoupledPendulumsModel {
         draw::draw_text2(self.label(), w / 2, MARGIN, 0, 0, enums::Align::Center);
 
         let theta1_str = format!("θ1 = {:.2}°", self.theta1.to_degrees());
-        draw::draw_text2(&theta1_str, x0_1, h - MARGIN * 2, 0, 0, enums::Align::Center);
+        draw::draw_text2(
+            &theta1_str,
+            x0_1,
+            h - MARGIN * 2,
+            0,
+            0,
+            enums::Align::Center,
+        );
 
         let theta2_str = format!("θ2 = {:.2}°", self.theta2.to_degrees());
-        draw::draw_text2(&theta2_str, x0_2, h - MARGIN * 2, 0, 0, enums::Align::Center);
+        draw::draw_text2(
+            &theta2_str,
+            x0_2,
+            h - MARGIN * 2,
+            0,
+            0,
+            enums::Align::Center,
+        );
 
         let time_str = format!("time = {:.2} s", self.time());
         draw::draw_text2(&time_str, w / 2, h - MARGIN, 0, 0, enums::Align::Center);
-    
+
         // Coordinates of pendulums
         let angle1: f64 = (90 as f64).to_radians() - self.theta1;
         let x1: i32 = (x0_1 as f64 + l * (angle1).cos()) as i32;
@@ -156,11 +180,9 @@ impl PendulumModel for CoupledPendulumsModel {
         let y2: i32 = (y0 as f64 + l * (angle2).sin()) as i32;
 
         // Draw vertical axis
-        draw_axis(x0_1, y0,
-            x0_1, y0 + (l * 1.25) as i32);
+        draw_axis(x0_1, y0, x0_1, y0 + (l * 1.25) as i32);
 
-        draw_axis(x0_2, y0,
-            x0_2, y0 + (l * 1.25) as i32);
+        draw_axis(x0_2, y0, x0_2, y0 + (l * 1.25) as i32);
 
         // Draw linking spring
         const SPRING_WIDTH: i32 = 10;
@@ -169,8 +191,8 @@ impl PendulumModel for CoupledPendulumsModel {
         // Draw rest
         const FIX_WIDTH: i32 = 90;
         const FIX_HEIGHT: i32 = 25;
-        draw_rest(x0_1, y0 - FIX_HEIGHT/2, FIX_WIDTH, FIX_HEIGHT);
-        draw_rest(x0_2, y0 - FIX_HEIGHT/2, FIX_WIDTH, FIX_HEIGHT);
+        draw_rest(x0_1, y0 - FIX_HEIGHT / 2, FIX_WIDTH, FIX_HEIGHT);
+        draw_rest(x0_2, y0 - FIX_HEIGHT / 2, FIX_WIDTH, FIX_HEIGHT);
 
         // Draw cords
         draw_cord(x0_1, y0, x1, y1);

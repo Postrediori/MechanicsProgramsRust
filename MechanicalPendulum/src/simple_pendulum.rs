@@ -1,7 +1,7 @@
-use fltk::{enums, draw};
+use fltk::{draw, enums};
 
-use crate::param_list::*;
 use crate::draw_primitives::*;
+use crate::param_list::*;
 use crate::pendulum_model::*;
 
 // Model of a simple pendulum
@@ -106,7 +106,14 @@ impl PendulumModel for SimplePendulumModel {
         draw::draw_text2(self.label(), w / 2, MARGIN, 0, 0, enums::Align::Center);
 
         let theta_str = format!("θ = {:.2}°", self.theta.to_degrees());
-        draw::draw_text2(&theta_str, w / 2, h - MARGIN * 2, 0, 0, enums::Align::Center);
+        draw::draw_text2(
+            &theta_str,
+            w / 2,
+            h - MARGIN * 2,
+            0,
+            0,
+            enums::Align::Center,
+        );
 
         let time_str = format!("time = {:.2} s", self.time());
         draw::draw_text2(&time_str, w / 2, h - MARGIN, 0, 0, enums::Align::Center);
@@ -115,20 +122,19 @@ impl PendulumModel for SimplePendulumModel {
         let x0: i32 = w / 2;
         let y0: i32 = h / 4;
         let l: f64 = self.length * ((h / 2) as f64);
-    
+
         // Coordinates of the weight
         let angle: f64 = (90 as f64).to_radians() - self.theta;
         let x1: i32 = (x0 as f64 + l * (angle).cos()) as i32;
         let y1: i32 = (y0 as f64 + l * (angle).sin()) as i32;
-    
+
         // Draw vertical axis
-        draw_axis(x0, y0,
-            x0, y0 + (l * 1.25) as i32);
+        draw_axis(x0, y0, x0, y0 + (l * 1.25) as i32);
 
         // Draw rest
         const FIX_WIDTH: i32 = 90;
         const FIX_HEIGHT: i32 = 25;
-        draw_rest(x0, y0 - FIX_HEIGHT/2, FIX_WIDTH, FIX_HEIGHT);
+        draw_rest(x0, y0 - FIX_HEIGHT / 2, FIX_WIDTH, FIX_HEIGHT);
 
         // Draw cord
         draw_cord(x0, y0, x1, y1);

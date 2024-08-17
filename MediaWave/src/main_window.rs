@@ -1,8 +1,11 @@
-use fltk::{*, prelude::*};
+use fltk::{prelude::*, *};
 
-use crate::{plot_widget::PlotWidget, pipe_model::{PipeModel, BOUNDARY_OPEN, BOUNDARY_SEALED}};
 use crate::frame_saver::FrameSaver;
 use crate::res::IconsAssets;
+use crate::{
+    pipe_model::{PipeModel, BOUNDARY_OPEN, BOUNDARY_SEALED},
+    plot_widget::PlotWidget,
+};
 
 const MARGIN: i32 = 10;
 pub struct MainWindow {
@@ -30,26 +33,32 @@ pub struct MainWindow {
 impl MainWindow {
     pub fn make_window(w: i32, h: i32, title: &str) -> Self {
         let mut wind = window::Window::default()
-            .with_size(w, h).center_screen()
+            .with_size(w, h)
+            .center_screen()
             .with_label(title);
 
         let plot_widget_w: i32 = h - MARGIN * 2;
         let plot_widget_h: i32 = (plot_widget_w - MARGIN) / 2;
 
-        let frame_offs = draw::Offscreen::new(plot_widget_w, 2*plot_widget_h).unwrap();
+        let frame_offs = draw::Offscreen::new(plot_widget_w, 2 * plot_widget_h).unwrap();
 
-        let uw_plot = PlotWidget::new(MARGIN, MARGIN,
-            plot_widget_w, plot_widget_h, "U(x)");
+        let uw_plot = PlotWidget::new(MARGIN, MARGIN, plot_widget_w, plot_widget_h, "U(x)");
 
-        let pw_plot = PlotWidget::new(MARGIN, uw_plot.y() + uw_plot.h() + MARGIN,
-            plot_widget_w, plot_widget_h, "P(x)");
+        let pw_plot = PlotWidget::new(
+            MARGIN,
+            uw_plot.y() + uw_plot.h() + MARGIN,
+            plot_widget_w,
+            plot_widget_h,
+            "P(x)",
+        );
 
         let mut g_settings = group::Group::default()
             .with_size(195, 315)
             .with_pos(uw_plot.x() + uw_plot.w() + MARGIN, MARGIN * 2)
-            .with_label("Settings").with_align(enums::Align::Top);
+            .with_label("Settings")
+            .with_align(enums::Align::Top);
         g_settings.set_frame(enums::FrameType::ShadowBox);
-        
+
         let mut choice_ux = menu::Choice::default()
             .with_size(100, 25)
             .with_pos(g_settings.x() + 80, g_settings.y() + MARGIN)
@@ -127,7 +136,8 @@ impl MainWindow {
 
         let mut btn_apply = button::Button::default()
             .with_size(90, 25)
-            .below_of(&in_sigma, 5).center_x(&g_settings)
+            .below_of(&in_sigma, 5)
+            .center_x(&g_settings)
             .with_label("Apply");
         btn_apply.set_tooltip("Apply current parameters and restart the simulation");
 
@@ -161,15 +171,21 @@ impl MainWindow {
 
         let mut btn_save_frame = button::Button::default()
             .with_size(90, 25)
-            .with_pos(g_capture.x(), g_capture.y() + 5).center_x(&g_capture)
+            .with_pos(g_capture.x(), g_capture.y() + 5)
+            .center_x(&g_capture)
             .with_label("Save frame");
         btn_save_frame.set_tooltip("Save single frame of the simulation");
 
         let mut btn_save_all_frames = button::CheckButton::default()
             .with_size(90, 25)
-            .with_pos(g_capture.x() + 35, btn_save_frame.y() + btn_save_frame.h() + 5)
+            .with_pos(
+                g_capture.x() + 35,
+                btn_save_frame.y() + btn_save_frame.h() + 5,
+            )
             .with_label("Save all frames");
-        btn_save_all_frames.set_tooltip("Save all frames of the running simulation (this will slow down the program a lot!)");
+        btn_save_all_frames.set_tooltip(
+            "Save all frames of the running simulation (this will slow down the program a lot!)",
+        );
 
         g_capture.end();
 
@@ -234,10 +250,10 @@ impl MainWindow {
         self.in_sigma.set_value(&sigma_str);
 
         let ui = self.choice_ux.find_index(&m.un_id);
-        self.choice_ux.set_value(if ui!=-1 { ui } else { 0 });
+        self.choice_ux.set_value(if ui != -1 { ui } else { 0 });
 
         let pi = self.choice_px.find_index(&m.pn_id);
-        self.choice_px.set_value(if pi!=-1 { pi } else { 0 });
+        self.choice_px.set_value(if pi != -1 { pi } else { 0 });
     }
 
     pub fn get_inputs(&self, m: &mut PipeModel) {
@@ -247,24 +263,46 @@ impl MainWindow {
         m.rho = self.in_rho.value().parse::<f64>().expect("Not a number!");
         m.sigma = self.in_sigma.value().parse::<f64>().expect("Not a number!");
 
-        let ux = self.choice_ux.at(self.choice_ux.value()).unwrap().label().unwrap();
+        let ux = self
+            .choice_ux
+            .at(self.choice_ux.value())
+            .unwrap()
+            .label()
+            .unwrap();
         m.set_initial_u(&ux);
         println!("Type of initial conditions for velocity function: {}", ux);
 
-        let px = self.choice_px.at(self.choice_px.value()).unwrap().label().unwrap();
+        let px = self
+            .choice_px
+            .at(self.choice_px.value())
+            .unwrap()
+            .label()
+            .unwrap();
         m.set_initial_p(&px);
         println!("Type of initial conditions for pressure function: {}", px);
 
         match self.choice_left.value() {
-            0 => { m.bl = BOUNDARY_SEALED; }
-            1 => { m.bl = BOUNDARY_OPEN; }
-            _ => { println!("Unknown type of biundary condition!"); }
+            0 => {
+                m.bl = BOUNDARY_SEALED;
+            }
+            1 => {
+                m.bl = BOUNDARY_OPEN;
+            }
+            _ => {
+                println!("Unknown type of biundary condition!");
+            }
         }
 
         match self.choice_right.value() {
-            0 => { m.br = BOUNDARY_SEALED; }
-            1 => { m.br = BOUNDARY_OPEN; }
-            _ => { println!("Unknown type of biundary condition!"); }
+            0 => {
+                m.br = BOUNDARY_SEALED;
+            }
+            1 => {
+                m.br = BOUNDARY_OPEN;
+            }
+            _ => {
+                println!("Unknown type of biundary condition!");
+            }
         }
     }
 
@@ -282,8 +320,7 @@ impl MainWindow {
             self.btn_apply.deactivate();
             self.btn_step.deactivate();
             self.btn_start_stop.set_label("Stop");
-        }
-        else {
+        } else {
             self.choice_ux.activate();
             self.choice_px.activate();
             self.choice_left.activate();
@@ -310,16 +347,27 @@ impl MainWindow {
         let h = self.pw_plot.h() + self.uw_plot.h();
 
         self.frame_offs.begin();
-        self.uw_plot.copy_plot(0, 0, self.uw_plot.w(), self.uw_plot.h(), 0, 0);
-        self.pw_plot.copy_plot(0, self.uw_plot.h(), self.pw_plot.w(), self.pw_plot.h(), 0, 0);
+        self.uw_plot
+            .copy_plot(0, 0, self.uw_plot.w(), self.uw_plot.h(), 0, 0);
+        self.pw_plot.copy_plot(
+            0,
+            self.uw_plot.h(),
+            self.pw_plot.w(),
+            self.pw_plot.h(),
+            0,
+            0,
+        );
         self.frame_offs.end();
 
         match draw::capture_offscreen(&mut self.frame_offs, w, h) {
             Ok(img) => {
                 let data = img.to_rgb_data();
-                self.frame_saver.save_frame(&data, img.width(), img.height());
+                self.frame_saver
+                    .save_frame(&data, img.width(), img.height());
             }
-            Err(error) => { eprintln!("Cannot capture frame to image. Error: {}", error); }
+            Err(error) => {
+                eprintln!("Cannot capture frame to image. Error: {}", error);
+            }
         }
     }
 }

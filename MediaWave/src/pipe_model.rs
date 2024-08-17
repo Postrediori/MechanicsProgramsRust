@@ -20,14 +20,29 @@ fn f_initial_u(id: &str) -> InitialFunc {
     const UN_1: f64 = 1.0;
 
     match id {
-    "▄▄▄▄▄▄" => { |_| UN_0 }
-    "██▄▄██" => { |x| if x*3.0<1.0 || x*3.0>2.0 { UN_1 } else { UN_0 } }
-    "██▄▄▄▄" => { |x| if x*3.0<1.0 { UN_1 } else { UN_0 } }
-    "▄▄██▄▄" => { |x| if x*3.0>1.0 && x*3.0<2.0 { UN_1 } else { UN_0 } }
-    "▄▄▄▄██" => { |x| if x*3.0>2.0 { UN_1 } else { UN_0 } }
-    "▄▄▄███" => { |x| if x<0.5 { -UN_1 } else { UN_1 } }
-    "███▄▄▄" => { |x| if x<0.5 { UN_1 } else { -UN_1 } }
-    _ => { eprintln!("Unknown initial conditions id {}", id); |_| UN_0 }
+        "▄▄▄▄▄▄" => |_| UN_0,
+        "██▄▄██" => |x| {
+            if x * 3.0 < 1.0 || x * 3.0 > 2.0 {
+                UN_1
+            } else {
+                UN_0
+            }
+        },
+        "██▄▄▄▄" => |x| if x * 3.0 < 1.0 { UN_1 } else { UN_0 },
+        "▄▄██▄▄" => |x| {
+            if x * 3.0 > 1.0 && x * 3.0 < 2.0 {
+                UN_1
+            } else {
+                UN_0
+            }
+        },
+        "▄▄▄▄██" => |x| if x * 3.0 > 2.0 { UN_1 } else { UN_0 },
+        "▄▄▄███" => |x| if x < 0.5 { -UN_1 } else { UN_1 },
+        "███▄▄▄" => |x| if x < 0.5 { UN_1 } else { -UN_1 },
+        _ => {
+            eprintln!("Unknown initial conditions id {}", id);
+            |_| UN_0
+        }
     }
 }
 
@@ -36,14 +51,29 @@ fn f_initial_p(id: &str) -> InitialFunc {
     const PN_1: f64 = 1.0;
 
     match id {
-    "▄▄▄▄▄▄" => { |_| PN_0 }
-    "██▄▄██" => { |x| if x*3.0<1.0 || x*3.0>2.0 { PN_1 } else { PN_0 } }
-    "██▄▄▄▄" => { |x| if x*3.0<1.0 { PN_1 } else { PN_0 } }
-    "▄▄██▄▄" => { |x| if x*3.0>1.0 && x*3.0<2.0 { PN_1 } else { PN_0 } }
-    "▄▄▄▄██" => { |x| if x*3.0>2.0 { PN_1 } else { PN_0 } }
-    "▄▄▄███" => { |x| if x<0.5 { -PN_1 } else { PN_1 } }
-    "███▄▄▄" => { |x| if x<0.5 { PN_1 } else { -PN_1 } }
-    _ => { eprintln!("Unknown initial conditions id {}", id); |_| PN_0 }
+        "▄▄▄▄▄▄" => |_| PN_0,
+        "██▄▄██" => |x| {
+            if x * 3.0 < 1.0 || x * 3.0 > 2.0 {
+                PN_1
+            } else {
+                PN_0
+            }
+        },
+        "██▄▄▄▄" => |x| if x * 3.0 < 1.0 { PN_1 } else { PN_0 },
+        "▄▄██▄▄" => |x| {
+            if x * 3.0 > 1.0 && x * 3.0 < 2.0 {
+                PN_1
+            } else {
+                PN_0
+            }
+        },
+        "▄▄▄▄██" => |x| if x * 3.0 > 2.0 { PN_1 } else { PN_0 },
+        "▄▄▄███" => |x| if x < 0.5 { -PN_1 } else { PN_1 },
+        "███▄▄▄" => |x| if x < 0.5 { PN_1 } else { -PN_1 },
+        _ => {
+            eprintln!("Unknown initial conditions id {}", id);
+            |_| PN_0
+        }
     }
 }
 
@@ -55,8 +85,10 @@ pub struct PipeModel {
     pub a: f64,
     pub rho: f64,
     rho_a: f64,
-    h: f64, h2: f64,
-    tau: f64, tau_h: f64,
+    h: f64,
+    h2: f64,
+    tau: f64,
+    tau_h: f64,
     pub bl: BoundaryCondition,
     pub br: BoundaryCondition,
     pub x: Vec<f64>,
@@ -78,7 +110,11 @@ impl PipeModel {
             sigma: DEFAULT_SIGMA,
             a: DEFAULT_A,
             rho: DEFAULT_RHO,
-            rho_a: 0.0, h: 0.0, h2: 0.0, tau: 0.0, tau_h: 0.0,
+            rho_a: 0.0,
+            h: 0.0,
+            h2: 0.0,
+            tau: 0.0,
+            tau_h: 0.0,
             bl: DEFAULT_CONDITION_L,
             br: DEFAULT_CONDITION_R,
             x: vec![],
@@ -102,17 +138,34 @@ impl PipeModel {
         self.rho_a = self.rho * self.a;
         self.tau_h = self.tau / self.h;
 
-        self.x = (0..self.n+1).map(|i| self.h * (i as f64)).collect();
-        self.x2 = self.x.split_last().unwrap().1.into_iter().map(|x| x + self.h2).collect();
+        self.x = (0..self.n + 1).map(|i| self.h * (i as f64)).collect();
+        self.x2 = self
+            .x
+            .split_last()
+            .unwrap()
+            .1
+            .into_iter()
+            .map(|x| x + self.h2)
+            .collect();
 
         let initial_u = f_initial_u(&self.un_id);
         let initial_p = f_initial_p(&self.pn_id);
 
-        self.u1 = self.x2.clone().into_iter().map(|x| initial_u(x / self.len)).collect();
-        self.p1 = self.x2.clone().into_iter().map(|x| initial_p(x / self.len)).collect();
+        self.u1 = self
+            .x2
+            .clone()
+            .into_iter()
+            .map(|x| initial_u(x / self.len))
+            .collect();
+        self.p1 = self
+            .x2
+            .clone()
+            .into_iter()
+            .map(|x| initial_p(x / self.len))
+            .collect();
 
-        self.u = vec![0.0; self.n+1];
-        self.p = vec![0.0; self.n+1];
+        self.u = vec![0.0; self.n + 1];
+        self.p = vec![0.0; self.n + 1];
     }
 
     // Perform single step of the simulation
@@ -125,7 +178,10 @@ impl PipeModel {
             if delta == 0.0 {
                 return None;
             } else {
-                Some([(b[0] * a[1][1] - b[1] * a[0][1]) / delta, (b[1] * a[0][0] - b[0] * a[1][0]) / delta])
+                Some([
+                    (b[0] * a[1][1] - b[1] * a[0][1]) / delta,
+                    (b[1] * a[0][0] - b[0] * a[1][0]) / delta,
+                ])
             }
         }
 
@@ -141,7 +197,7 @@ impl PipeModel {
 
         // Calculate conditions on the right tip
         let s = [[1.0, 1.0 / self.rho_a], [self.br.c, self.br.b]];
-        let y = [self.u1[self.n-1] + self.p1[self.n-1] / self.rho_a, 0.0];
+        let y = [self.u1[self.n - 1] + self.p1[self.n - 1] / self.rho_a, 0.0];
         let w = simq2(s, y).unwrap();
         self.u[self.n] = w[0];
         self.p[self.n] = w[1];
@@ -151,13 +207,16 @@ impl PipeModel {
         // self.p[self.n] = self.br.c * (self.p1[self.n-1] - self.rho_a * self.u1[self.n-1]) / (self.br.c - self.rho_a * self.br.b);
 
         for i in 1..self.n {
-            self.u[i] = ((self.u1[i] + self.u1[i-1]) - (self.p1[i] - self.p1[i-1]) / self.rho_a) / 2.0;
-            self.p[i] = ((self.p1[i] + self.p1[i-1]) - (self.u1[i] - self.u1[i-1]) * self.rho_a) / 2.0;
+            self.u[i] =
+                ((self.u1[i] + self.u1[i - 1]) - (self.p1[i] - self.p1[i - 1]) / self.rho_a) / 2.0;
+            self.p[i] =
+                ((self.p1[i] + self.p1[i - 1]) - (self.u1[i] - self.u1[i - 1]) * self.rho_a) / 2.0;
         }
 
         for i in 0..self.n {
-            self.u1[i] = self.u1[i] - (self.p[i+1] - self.p[i]) * self.tau_h / self.rho;
-            self.p1[i] = self.p1[i] - (self.u[i+1] - self.u[i]) * self.rho_a * self.tau_h * self.a;
+            self.u1[i] = self.u1[i] - (self.p[i + 1] - self.p[i]) * self.tau_h / self.rho;
+            self.p1[i] =
+                self.p1[i] - (self.u[i + 1] - self.u[i]) * self.rho_a * self.tau_h * self.a;
         }
     }
 

@@ -1,6 +1,6 @@
 use std::f64::consts::TAU;
 
-use fltk::{enums, draw};
+use fltk::{draw, enums};
 
 /*
  * Colors
@@ -12,7 +12,6 @@ const REST_DOT_COLOR: enums::Color = enums::Color::White;
 const CORD_COLOR: enums::Color = enums::Color::Black;
 const SPRING_COLOR: enums::Color = enums::Color::Black;
 const WEIGHT_COLOR: enums::Color = enums::Color::DarkRed;
-
 
 /*
  * Primitive drawing functions
@@ -63,7 +62,7 @@ pub fn draw_spring(x1: i32, y1: i32, x2: i32, y2: i32, sections: i32, width: i32
     // Draw beginning segment
     draw::vertex(x1 as f64, y1 as f64);
 
-    for i in 0..k+1 {
+    for i in 0..k + 1 {
         let x_l = dl + dl_spring * (i as f64); // +dl for 'real' beginning of spring segments
         let y_l = ((i as f64) * (sections as f64) * TAU / (k as f64)).sin() * (width as f64);
 
@@ -76,7 +75,7 @@ pub fn draw_spring(x1: i32, y1: i32, x2: i32, y2: i32, sections: i32, width: i32
 
     // Draw ending segment
     draw::vertex(x2 as f64, y2 as f64);
-    
+
     draw::end_line();
 }
 
@@ -84,23 +83,29 @@ pub fn draw_rest(x: i32, y: i32, width: i32, height: i32) {
     let x0 = x - width / 2;
     let y0 = y - height / 2;
     draw::draw_rect_fill(x0, y0, width, height, REST_COLOR);
-    
+
     const COLS: i32 = 10;
     const ROWS: i32 = 4;
     const SIZE: i32 = 1;
     draw::set_draw_color(REST_DOT_COLOR);
     for j in 1..ROWS {
         for i in ((j + 1) % 2)..COLS {
-            let x: i32 = x0 + (((i as f64 + ((j % 2) as f64) * 0.5) * (width as f64)) as i32) / COLS;
+            let x: i32 =
+                x0 + (((i as f64 + ((j % 2) as f64) * 0.5) * (width as f64)) as i32) / COLS;
             let y: i32 = y0 + (j * height) / ROWS;
-            draw::draw_circle_fill(x - SIZE, y - SIZE, 2*SIZE+1, REST_DOT_COLOR);
+            draw::draw_circle_fill(x - SIZE, y - SIZE, 2 * SIZE + 1, REST_DOT_COLOR);
         }
     }
 }
 
 pub fn draw_weight(x: i32, y: i32) {
     const WEIGHT_RADIUS: i32 = 10;
-    
+
     draw::set_draw_color(WEIGHT_COLOR);
-    draw::draw_circle_fill(x - WEIGHT_RADIUS, y - WEIGHT_RADIUS, WEIGHT_RADIUS * 2, WEIGHT_COLOR);
+    draw::draw_circle_fill(
+        x - WEIGHT_RADIUS,
+        y - WEIGHT_RADIUS,
+        WEIGHT_RADIUS * 2,
+        WEIGHT_COLOR,
+    );
 }

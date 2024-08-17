@@ -1,16 +1,16 @@
 mod frame_saver;
 
-use fltk::{*, prelude::{*}};
+use fltk::{prelude::*, *};
 
 use std::cell::RefCell;
 use std::rc::Rc;
 use std::{thread, time::Duration};
 
+mod main_window;
+mod res;
 mod surface_functions;
 mod wave_model;
 mod wave_widget;
-mod main_window;
-mod res;
 
 const REDRAW_DT: u64 = 16;
 
@@ -65,12 +65,11 @@ fn main() {
 
     w.borrow_mut().btn_start_stop.set_callback({
         let running = running.clone();
-        move |_|{
+        move |_| {
             let running = running.borrow();
             if *running {
                 tx.send(Message::Stop);
-            }
-            else {
+            } else {
                 tx.send(Message::Start);
             }
         }
@@ -78,7 +77,7 @@ fn main() {
 
     w.borrow_mut().btn_save_frame.set_callback({
         let w = w.clone();
-        move |_|{
+        move |_| {
             let mut w = w.borrow_mut();
             w.ww.save_frame();
         }

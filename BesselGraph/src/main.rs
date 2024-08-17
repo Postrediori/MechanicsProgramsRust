@@ -1,10 +1,11 @@
 mod bessel_func;
 mod plot_widget;
-use plot_widget::{Area, PlotWidget, PlotLines, PlotFunctionInfo};
+use plot_widget::{Area, PlotFunctionInfo, PlotLines, PlotWidget};
 
-mod res;use res::IconsAssets;
+mod res;
+use res::IconsAssets;
 
-use fltk::{*, prelude::*};
+use fltk::{prelude::*, *};
 
 use std::thread;
 
@@ -22,20 +23,26 @@ enum Message {
 
 fn main() {
     // Plot parameters
-    const DEFAULT_AREA: Area = Area{ xmin: 0.0, xmax: 20.0, ymin: -3.0, ymax: 1.0 };
+    const DEFAULT_AREA: Area = Area {
+        xmin: 0.0,
+        xmax: 20.0,
+        ymin: -3.0,
+        ymax: 1.0,
+    };
 
     let plots: Vec<PlotFunctionInfo> = [
-        PlotFunctionInfo{
+        PlotFunctionInfo {
             f: bessel_func::y0_1,
             color: enums::Color::from_u32(0xa00000),
-            name: "Integration".to_string()
+            name: "Integration".to_string(),
         },
-        PlotFunctionInfo{
+        PlotFunctionInfo {
             f: bessel_func::y0_2,
             color: enums::Color::from_u32(0x99ccff),
-            name: "Infinite series".to_string()
+            name: "Infinite series".to_string(),
         },
-    ].to_vec();
+    ]
+    .to_vec();
 
     // App and main window
     let a = app::App::default();
@@ -79,9 +86,8 @@ fn main() {
         let mut row = group::Flex::default_fill().row();
 
         frame::Frame::default();
-        
-        in_max_y = input::FloatInput::default()
-            .with_label("y max");
+
+        in_max_y = input::FloatInput::default().with_label("y max");
         in_max_y.set_align(enums::Align::Top);
         row.fixed(&in_max_y, 75);
 
@@ -98,14 +104,12 @@ fn main() {
         let mut row = group::Flex::default_fill().row();
 
         frame::Frame::default();
-        
-        in_min_x = input::FloatInput::default()
-            .with_label("x min");
+
+        in_min_x = input::FloatInput::default().with_label("x min");
         in_min_x.set_align(enums::Align::Left);
         row.fixed(&in_min_x, 45);
 
-        in_max_x = input::FloatInput::default()
-            .with_label("x max");
+        in_max_x = input::FloatInput::default().with_label("x max");
         in_max_x.set_align(enums::Align::Right);
         row.fixed(&in_max_x, 45);
 
@@ -121,9 +125,8 @@ fn main() {
         let mut row = group::Flex::default_fill().row();
 
         frame::Frame::default();
-        
-        in_min_y = input::FloatInput::default()
-            .with_label("y min");
+
+        in_min_y = input::FloatInput::default().with_label("y min");
         in_min_y.set_align(enums::Align::Bottom);
         row.fixed(&in_min_y, 75);
 
@@ -144,9 +147,8 @@ fn main() {
         let mut row = group::Flex::default_fill().row();
 
         frame::Frame::default();
-        
-        btn_redraw = button::Button::default()
-            .with_label("Update");
+
+        btn_redraw = button::Button::default().with_label("Update");
         row.fixed(&btn_redraw, 90);
 
         frame::Frame::default();
@@ -174,7 +176,8 @@ fn main() {
     legend_frame.set_frame(enums::FrameType::BorderFrame);
     legend_frame.set_color(enums::Color::Black);
 
-    let mut pack = group::Flex::default().column()
+    let mut pack = group::Flex::default()
+        .column()
         .with_pos(legend_frame.x(), legend_frame.y())
         .with_size(legend_frame.w(), legend_frame.h());
     pack.set_spacing(MARGIN);
@@ -203,37 +206,37 @@ fn main() {
     wind.end();
 
     let (tx, rx) = app::channel::<Message>();
-    
+
     // Callbacks
     in_max_x.set_callback({
         let tx = tx.clone();
         move |_b| {
-           tx.send(Message::UpdateArea);
+            tx.send(Message::UpdateArea);
         }
     });
     in_min_x.set_callback({
         let tx = tx.clone();
         move |_b| {
-           tx.send(Message::UpdateArea);
+            tx.send(Message::UpdateArea);
         }
     });
     in_max_y.set_callback({
         let tx = tx.clone();
         move |_b| {
-           tx.send(Message::UpdateArea);
+            tx.send(Message::UpdateArea);
         }
     });
     in_min_y.set_callback({
         let tx = tx.clone();
         move |_b| {
-           tx.send(Message::UpdateArea);
+            tx.send(Message::UpdateArea);
         }
     });
 
     btn_redraw.set_callback({
         let tx = tx.clone();
         move |_b| {
-           tx.send(Message::UpdateArea);
+            tx.send(Message::UpdateArea);
         }
     });
 
@@ -242,7 +245,7 @@ fn main() {
         let area = DEFAULT_AREA;
 
         plot_widget.set_area(area);
-        
+
         in_max_x.set_value(format!("{:.1}", area.xmax).as_str());
         in_min_x.set_value(format!("{:.1}", area.xmin).as_str());
         in_max_y.set_value(format!("{:.1}", area.ymax).as_str());
@@ -261,8 +264,7 @@ fn main() {
             legend_color.set_color(enums::Color::lighter(&p.color));
             row.fixed(&legend_color, 45);
 
-            let mut legend_name = frame::Frame::default()
-                .with_label(&p.name);
+            let mut legend_name = frame::Frame::default().with_label(&p.name);
             legend_name.set_label_color(enums::Color::Dark3);
             legend.push(legend_name);
 
@@ -285,11 +287,16 @@ fn main() {
                     let min_x: f64 = in_min_x.value().parse::<f64>().expect("Not a number!");
                     let max_y: f64 = in_max_y.value().parse::<f64>().expect("Not a number!");
                     let min_y: f64 = in_min_y.value().parse::<f64>().expect("Not a number!");
-        
-                    plot_widget.set_area(plot_widget::Area{xmin: min_x.max(0.0), xmax: max_x, ymin: min_y, ymax: max_y});
-        
+
+                    plot_widget.set_area(plot_widget::Area {
+                        xmin: min_x.max(0.0),
+                        xmax: max_x,
+                        ymin: min_y,
+                        ymax: max_y,
+                    });
+
                     tx.send(Message::UpdatePlots(plots.clone()));
-                },
+                }
                 Message::UpdatePlots(plots) => {
                     plot_widget.clear_plots();
                     plot_widget.redraw();
@@ -300,23 +307,26 @@ fn main() {
                     }
 
                     let area = plot_widget.get_area().clone();
-                    let _ = plots.into_iter().map(|p| {
-                        thread::spawn({
-                            let tx = tx.clone();
-                            move || {
-                                println!("Start calculation of plot {}", p.name);
-                                
-                                // Calculate plot points
-                                let lines_vec = p.calc_points(LINE_COUNT, &area);
-                                tx.send(Message::FinishCalculation((p, lines_vec)));
-                            }
-                        });
-                    }).collect::<Vec<_>>();
-                },
+                    let _ = plots
+                        .into_iter()
+                        .map(|p| {
+                            thread::spawn({
+                                let tx = tx.clone();
+                                move || {
+                                    println!("Start calculation of plot {}", p.name);
+
+                                    // Calculate plot points
+                                    let lines_vec = p.calc_points(LINE_COUNT, &area);
+                                    tx.send(Message::FinishCalculation((p, lines_vec)));
+                                }
+                            });
+                        })
+                        .collect::<Vec<_>>();
+                }
                 Message::FinishCalculation(p) => {
                     println!("Calculated plot {} with {} lines", &p.0.name, p.1.len());
 
-                    if let Some(w) = legend.iter_mut().find(|w| { w.label() == p.0.name }) {
+                    if let Some(w) = legend.iter_mut().find(|w| w.label() == p.0.name) {
                         w.set_label_color(p.0.color.darker());
                         w.redraw_label();
                     }

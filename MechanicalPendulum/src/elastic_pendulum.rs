@@ -1,7 +1,7 @@
-use fltk::{enums, draw};
+use fltk::{draw, enums};
 
-use crate::param_list::*;
 use crate::draw_primitives::*;
+use crate::param_list::*;
 use crate::pendulum_model::*;
 
 // Model of an elastic pendulum
@@ -99,10 +99,9 @@ impl PendulumModel for ElasticPendulumModel {
 
         let l = self.length + self.x;
 
-        self.x_a = l * (self.theta_v * self.theta_v) -
-            self.k * self.x / self.mass +
-            self.g * self.theta.cos();
-        
+        self.x_a = l * (self.theta_v * self.theta_v) - self.k * self.x / self.mass
+            + self.g * self.theta.cos();
+
         self.theta_a = -(self.g * self.theta.sin() + 2.0 * self.x_v * self.theta_v) / l;
 
         self.x_v += self.x_a * self.dtime;
@@ -138,7 +137,14 @@ impl PendulumModel for ElasticPendulumModel {
         draw::draw_text2(self.label(), w / 2, MARGIN, 0, 0, enums::Align::Center);
 
         let theta_str = format!("θ = {:.2}°", self.theta.to_degrees());
-        draw::draw_text2(&theta_str, w / 2, h - MARGIN * 2, 0, 0, enums::Align::Center);
+        draw::draw_text2(
+            &theta_str,
+            w / 2,
+            h - MARGIN * 2,
+            0,
+            0,
+            enums::Align::Center,
+        );
 
         let time_str = format!("time = {:.2} s", self.time());
         draw::draw_text2(&time_str, w / 2, h - MARGIN, 0, 0, enums::Align::Center);
@@ -148,25 +154,23 @@ impl PendulumModel for ElasticPendulumModel {
         let y0: i32 = h / 4;
         let l0: f64 = self.length * (h / 3) as f64;
         let l: f64 = l0 * (1.0 + self.x);
-    
+
         // Coordinates of the weight
         let angle: f64 = (90 as f64).to_radians() - self.theta;
         let x1: i32 = (x0 as f64 + l * (angle).cos()) as i32;
         let y1: i32 = (y0 as f64 + l * (angle).sin()) as i32;
-    
+
         // Draw vertical axis
-        draw_axis(x0, y0,
-            x0, y0 + (l0 * 1.25) as i32);
+        draw_axis(x0, y0, x0, y0 + (l0 * 1.25) as i32);
 
         // Draw rest
         const FIX_WIDTH: i32 = 90;
         const FIX_HEIGHT: i32 = 25;
-        draw_rest(x0, y0 - FIX_HEIGHT/2, FIX_WIDTH, FIX_HEIGHT);
+        draw_rest(x0, y0 - FIX_HEIGHT / 2, FIX_WIDTH, FIX_HEIGHT);
 
         // Draw spring
         const SPRING_WIDTH: i32 = 15;
-        draw_spring(x0, y0, x1, y1,
-            8, SPRING_WIDTH);
+        draw_spring(x0, y0, x1, y1, 8, SPRING_WIDTH);
 
         // Draw weight
         draw_weight(x1, y1);

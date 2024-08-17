@@ -1,18 +1,18 @@
 mod frame_saver;
 
-use fltk::{*, prelude::{*}};
+use fltk::{prelude::*, *};
 
 use std::cell::RefCell;
 use std::rc::Rc;
 use std::{thread, time::Duration};
 
+mod main_window;
 mod pipe_model;
 mod plot_widget;
-mod main_window;
 mod res;
 
-use crate::pipe_model::PipeModel;
 use crate::main_window::MainWindow;
+use crate::pipe_model::PipeModel;
 
 const WIDTH: i32 = 700;
 const HEIGHT: i32 = 500;
@@ -22,15 +22,15 @@ const REDRAW_DT: u64 = 16;
 fn main() {
     const DEFAULT_LEN: f64 = 10.0;
     const DEFAULT_N: usize = 100;
-    
+
     let mut model = PipeModel::new(DEFAULT_LEN, DEFAULT_N);
     model.reset();
 
     let a = app::App::default();
     app::get_system_colors();
 
-    let mut w = MainWindow::make_window(WIDTH, HEIGHT,
-        "Fluid mechanics in a pipe of limited length");
+    let mut w =
+        MainWindow::make_window(WIDTH, HEIGHT, "Fluid mechanics in a pipe of limited length");
     w.show();
 
     w.set_inputs(&model);
@@ -48,7 +48,7 @@ fn main() {
     let (tx, rx) = app::channel::<Message>();
 
     let running = false;
-    
+
     let running = Rc::from(RefCell::from(running));
     let model = Rc::from(RefCell::from(model));
     let w = Rc::from(RefCell::from(w));
@@ -76,12 +76,11 @@ fn main() {
 
     w.borrow_mut().btn_start_stop.set_callback({
         let running = running.clone();
-        move |_|{
+        move |_| {
             let running = running.borrow();
             if *running {
                 tx.send(Message::Stop);
-            }
-            else {
+            } else {
                 tx.send(Message::Start);
             }
         }
@@ -89,7 +88,7 @@ fn main() {
 
     w.borrow_mut().btn_save_frame.set_callback({
         let w = w.clone();
-        move |_|{
+        move |_| {
             let mut w = w.borrow_mut();
             w.save_frame();
         }
@@ -118,7 +117,7 @@ fn main() {
                     Message::Step => {
                         model.step();
                         w.draw_model(&model);
-                        
+
                         // Save frame of the simulation
                         if w.btn_save_all_frames.value() {
                             w.save_frame();

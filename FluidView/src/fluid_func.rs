@@ -5,8 +5,8 @@ const MAX_ITER: i64 = 10_000;
 const SOLUTION_1: i32 = 1;
 const SOLUTION_2: i32 = 2;
 
-type Func = fn(f64)->f64;
-type DFunc = fn(f64)->f64;
+type Func = fn(f64) -> f64;
+type DFunc = fn(f64) -> f64;
 
 // Iterative lookup function
 
@@ -52,7 +52,7 @@ fn lambda_q_solution(qc: f64, solution: i32) -> f64 {
     let xn: f64 = match solution {
         SOLUTION_1 => 0.5,
         SOLUTION_2 => 1.5,
-        _ => 0.0
+        _ => 0.0,
     };
 
     iterate_lookup(qc, xn, q, dq_dx)
@@ -61,6 +61,8 @@ fn lambda_q_solution(qc: f64, solution: i32) -> f64 {
 // Get two solutions for q(lambda)
 
 pub fn lambda_q(q: f64) -> (f64, f64) {
-    (lambda_q_solution(q, SOLUTION_1),
-        lambda_q_solution(q, SOLUTION_2))
+    (
+        lambda_q_solution(q, SOLUTION_1),
+        lambda_q_solution(q, SOLUTION_2),
+    )
 }

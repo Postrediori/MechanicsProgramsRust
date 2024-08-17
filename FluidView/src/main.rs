@@ -3,12 +3,9 @@ mod graph_widget;
 mod res;
 
 use fltk::{
-    app,
-    button,
-    input,
+    app, button, input,
     prelude::{DisplayExt, GroupExt, InputExt, WidgetExt, WindowExt},
-    text,
-    window
+    text, window,
 };
 use res::IconsAssets;
 
@@ -24,20 +21,22 @@ fn main() {
         .with_label("Fluid Flow Visual Calculator");
     wind.make_resizable(true);
 
-    let mut graph = graph_widget::GraphWidget::new(10, 10, HEIGHT-20, HEIGHT-20);
+    let mut graph = graph_widget::GraphWidget::new(10, 10, HEIGHT - 20, HEIGHT - 20);
 
     let mut inpq = input::FloatInput::default()
-        .with_size(90, 25).with_pos(WIDTH - 90 - 50, 10)
+        .with_size(90, 25)
+        .with_pos(WIDTH - 90 - 50, 10)
         .with_label("q = ");
 
     let mut btn_calc = button::Button::default()
-        .with_size(90, 25).below_of(&inpq, 10)
+        .with_size(90, 25)
+        .below_of(&inpq, 10)
         .with_label("Calculate");
 
     let buffer = text::TextBuffer::default();
     let mut disp = text::TextDisplay::default()
         .with_size(190, 200)
-        .with_pos(graph.x()+graph.w()+10, btn_calc.y()+btn_calc.h()+10);
+        .with_pos(graph.x() + graph.w() + 10, btn_calc.y() + btn_calc.h() + 10);
     disp.set_buffer(buffer);
 
     let mut set_q_value = move |q_val| {
@@ -67,7 +66,7 @@ fn main() {
 
     btn_calc.set_callback(move |_b| {
         let q_val: f64 = inpq.value().parse::<f64>().expect("Not a number!");
-        
+
         set_q_value(q_val);
     });
 

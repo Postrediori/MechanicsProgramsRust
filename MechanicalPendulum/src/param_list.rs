@@ -21,9 +21,9 @@ impl ParamList {
     }
 
     pub fn get_by_key(&self, key: &str) -> f64 {
-        match self.params.iter().find(|&x| x.0.eq(key) ) {
-        Some(x) => x.2,
-        None => panic!("No parameter with key '{}' found", key),
+        match self.params.iter().find(|&x| x.0.eq(key)) {
+            Some(x) => x.2,
+            None => panic!("No parameter with key '{}' found", key),
         }
     }
 
@@ -73,12 +73,11 @@ impl Clone for ParamList {
 
 impl<const N: usize> From<[(&str, &str, f64, &str); N]> for ParamList {
     fn from(arr: [(&str, &str, f64, &str); N]) -> Self {
-        let params = arr.iter().map(|i| {
-            (i.0.to_string(), i.1.to_string(), i.2, i.3.to_string() )
-        }).collect();
-        Self {
-            params,
-        }
+        let params = arr
+            .iter()
+            .map(|i| (i.0.to_string(), i.1.to_string(), i.2, i.3.to_string()))
+            .collect();
+        Self { params }
     }
 }
 

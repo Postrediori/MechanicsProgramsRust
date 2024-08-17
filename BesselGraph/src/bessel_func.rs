@@ -14,7 +14,11 @@ fn integrate(x1: f64, x2: f64, scale: i64, f: IntegrationFunc, c: &Constants) ->
     for i in 0..div_count {
         let x = x1 + dx * (i as f64);
         let y = f(x, c);
-        let m = if i > 0 && i < (div_count - 1) { ((i % 2 + 1) * 2) as f64} else { 1.0 };
+        let m = if i > 0 && i < (div_count - 1) {
+            ((i % 2 + 1) * 2) as f64
+        } else {
+            1.0
+        };
         s += y * m;
     }
 
@@ -60,7 +64,7 @@ pub fn y0_2(x: f64) -> f64 {
     for dn in 2..MAX_ITER {
         let a = p * m / (n * n);
         s += a;
-        
+
         if a.abs() < DELTA {
             break;
         }

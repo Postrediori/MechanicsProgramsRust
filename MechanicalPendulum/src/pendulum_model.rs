@@ -11,4 +11,4 @@ pub trait PendulumModel {
     fn draw(&self, w: i32, h: i32, offs: &draw::Offscreen);
 }
 
-pub trait ParametrizedModel: PendulumModel+Parametrized {}
+pub trait ParametrizedModel: PendulumModel + Parametrized {}

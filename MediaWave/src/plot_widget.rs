@@ -1,4 +1,4 @@
-use fltk::{*, prelude::*};
+use fltk::{prelude::*, *};
 
 use std::cell::RefCell;
 use std::rc::Rc;
@@ -44,10 +44,15 @@ impl PlotWidget {
 
         Self {
             inner,
-            area: Area { xmin: 0.0, xmax: 0.0, ymin: 0.0, ymax: 0.0 },
+            area: Area {
+                xmin: 0.0,
+                xmax: 0.0,
+                ymin: 0.0,
+                ymax: 0.0,
+            },
             pixel_x: 0.0,
             pixel_y: 0.0,
-            offs
+            offs,
         }
     }
 
@@ -59,10 +64,21 @@ impl PlotWidget {
         (self.area.ymax - y) / self.pixel_y + MARGIN as f64
     }
 
-    pub fn draw_plot(&mut self, x_points: &Vec<f64>, y_points: &Vec<f64>, len: f64, time: Option<f64>) {
+    pub fn draw_plot(
+        &mut self,
+        x_points: &Vec<f64>,
+        y_points: &Vec<f64>,
+        len: f64,
+        time: Option<f64>,
+    ) {
         let (width, height) = (self.w(), self.h());
-       
-        let area = Area { xmin: 0.0, xmax: len, ymin: -2.0, ymax: 2.0 };
+
+        let area = Area {
+            xmin: 0.0,
+            xmax: len,
+            ymin: -2.0,
+            ymax: 2.0,
+        };
         self.area = area;
 
         self.pixel_x = (area.xmax - area.xmin) / (self.w() - (MARGIN * 2 + TICK_SIZE)) as f64;
@@ -81,12 +97,17 @@ impl PlotWidget {
         draw::draw_text2(&title, self.w() / 2, MARGIN / 2, 0, 0, enums::Align::Center);
 
         match time {
-            None => { },
+            None => {}
             Some(t) => {
                 let time_str = format!("time: {:.4}", t);
-                draw::draw_text2(&time_str,
-                    self.get_x((area.xmax - area.xmin) / 2.0 + area.xmin) as i32, self.get_y(area.ymin) as i32 + TICK_SIZE,
-                    0, 0, enums::Align::Top);
+                draw::draw_text2(
+                    &time_str,
+                    self.get_x((area.xmax - area.xmin) / 2.0 + area.xmin) as i32,
+                    self.get_y(area.ymin) as i32 + TICK_SIZE,
+                    0,
+                    0,
+                    enums::Align::Top,
+                );
             }
         }
 
@@ -104,9 +125,9 @@ impl PlotWidget {
             enums::Color::from_u32(0xabd9ea),
             enums::Color::from_u32(0x74add1),
             enums::Color::from_u32(0x4575b4),
-            enums::Color::from_u32(0x313695)
+            enums::Color::from_u32(0x313695),
         ];
-        
+
         for i in 0..y_points.len() {
             let y = y_points[i];
             let t = 1.0 - (y - area.ymin) / (area.ymax - area.ymin);
@@ -115,9 +136,13 @@ impl PlotWidget {
             draw::set_draw_color(PALETTE[k]);
             draw::draw_polygon3(
                 draw::Coord::<i32>(self.get_x(x_points[i]) as i32, self.get_y(AXIS_Y) as i32),
-                draw::Coord::<i32>(self.get_x(x_points[i + 1]) as i32, self.get_y(AXIS_Y) as i32),
+                draw::Coord::<i32>(
+                    self.get_x(x_points[i + 1]) as i32,
+                    self.get_y(AXIS_Y) as i32,
+                ),
                 draw::Coord::<i32>(self.get_x(x_points[i + 1]) as i32, self.get_y(y) as i32),
-                draw::Coord::<i32>(self.get_x(x_points[i]) as i32, self.get_y(y) as i32));
+                draw::Coord::<i32>(self.get_x(x_points[i]) as i32, self.get_y(y) as i32),
+            );
         }
 
         // Bounding box
@@ -132,19 +157,21 @@ impl PlotWidget {
 
         // Ticks
         let dx = (area.xmax - area.xmin) / TICKS_COUNT as f64;
-        for i in 0..TICKS_COUNT+1 {
+        for i in 0..TICKS_COUNT + 1 {
             draw::draw_yxline(
                 self.get_x(area.xmin + dx * (i as f64)) as i32,
                 self.get_y(area.ymin) as i32,
-                self.get_y(area.ymin) as i32 + TICK_SIZE / (if i % 2 == 0 { 1 } else { 2 }));
+                self.get_y(area.ymin) as i32 + TICK_SIZE / (if i % 2 == 0 { 1 } else { 2 }),
+            );
         }
 
         let dy = (area.ymax - area.ymin) / TICKS_COUNT as f64;
-        for i in 0..TICKS_COUNT+1 {
+        for i in 0..TICKS_COUNT + 1 {
             draw::draw_xyline(
                 self.get_x(area.xmin) as i32,
                 self.get_y(area.ymin + dy * (i as f64)) as i32,
-                self.get_x(area.xmin) as i32 - TICK_SIZE / (if i % 2 == 0 { 1 } else { 2 }));
+                self.get_x(area.xmin) as i32 - TICK_SIZE / (if i % 2 == 0 { 1 } else { 2 }),
+            );
         }
 
         // Plot ranges
@@ -152,46 +179,77 @@ impl PlotWidget {
         draw::set_font(enums::Font::Helvetica, 12);
 
         let xmin_str = format!("{:.1}", area.xmin);
-        draw::draw_text2(&xmin_str,
-            self.get_x(area.xmin) as i32, self.get_y(area.ymin) as i32 + TICK_SIZE + 2,
-            0, 0, enums::Align::TopLeft);
+        draw::draw_text2(
+            &xmin_str,
+            self.get_x(area.xmin) as i32,
+            self.get_y(area.ymin) as i32 + TICK_SIZE + 2,
+            0,
+            0,
+            enums::Align::TopLeft,
+        );
 
         let xmax_str = format!("{:.1}", area.xmax);
-        draw::draw_text2(&xmax_str,
-            self.get_x(area.xmax) as i32, self.get_y(area.ymin) as i32 + TICK_SIZE + 2,
-            0, 0, enums::Align::TopRight);
+        draw::draw_text2(
+            &xmax_str,
+            self.get_x(area.xmax) as i32,
+            self.get_y(area.ymin) as i32 + TICK_SIZE + 2,
+            0,
+            0,
+            enums::Align::TopRight,
+        );
 
         let ymin_str = format!("{:.1}", area.ymin);
-        draw::draw_text2(&ymin_str,
-            self.get_x(area.xmin) as i32 - TICK_SIZE - 2, self.get_y(area.ymin) as i32,
-            0, 0, enums::Align::Right);
+        draw::draw_text2(
+            &ymin_str,
+            self.get_x(area.xmin) as i32 - TICK_SIZE - 2,
+            self.get_y(area.ymin) as i32,
+            0,
+            0,
+            enums::Align::Right,
+        );
 
         let ymax_str = format!("{:.1}", area.ymax);
-        draw::draw_text2(&ymax_str,
-            self.get_x(area.xmin) as i32 - TICK_SIZE - 2, self.get_y(area.ymax) as i32,
-            0, 0, enums::Align::Right);
+        draw::draw_text2(
+            &ymax_str,
+            self.get_x(area.xmin) as i32 - TICK_SIZE - 2,
+            self.get_y(area.ymax) as i32,
+            0,
+            0,
+            enums::Align::Right,
+        );
 
         // Axis
         draw::set_line_style(draw::LineStyle::DashDot, 1);
         draw::set_draw_color(enums::Color::Black);
-        draw::draw_line(self.get_x(area.xmin) as i32, self.get_y(AXIS_Y) as i32,
-            self.get_x(area.xmax) as i32, self.get_y(AXIS_Y) as i32);
+        draw::draw_line(
+            self.get_x(area.xmin) as i32,
+            self.get_y(AXIS_Y) as i32,
+            self.get_x(area.xmax) as i32,
+            self.get_y(AXIS_Y) as i32,
+        );
 
         // Axis label
         draw::set_font(enums::Font::Helvetica, 12);
         let yaxis_str = format!("{:.1}", AXIS_Y);
-        draw::draw_text2(&yaxis_str,
-            self.get_x(area.xmin) as i32 - TICK_SIZE - 2, self.get_y(AXIS_Y) as i32,
-            0, 0, enums::Align::Right);
+        draw::draw_text2(
+            &yaxis_str,
+            self.get_x(area.xmin) as i32 - TICK_SIZE - 2,
+            self.get_y(AXIS_Y) as i32,
+            0,
+            0,
+            enums::Align::Right,
+        );
 
         // Draw plot
         draw::set_line_style(draw::LineStyle::Solid, 1);
         draw::set_draw_color(enums::Color::Red);
-        
+
         for i in 0..y_points.len() {
-            draw::draw_xyline(self.get_x(x_points[i]) as i32,
+            draw::draw_xyline(
+                self.get_x(x_points[i]) as i32,
                 self.get_y(y_points[i]) as i32,
-                self.get_x(x_points[i+1]) as i32);
+                self.get_x(x_points[i + 1]) as i32,
+            );
         }
 
         self.offs.borrow().end();
