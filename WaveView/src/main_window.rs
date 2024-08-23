@@ -12,7 +12,6 @@ const MARGIN: i32 = 10;
 const WAVE_VIEW_SIZE: i32 = HEIGHT - MARGIN * 2;
 
 pub struct MainWindow {
-    pub wind: window::Window,
     pub ww: WaveWidget,
 
     surface_choice: menu::Choice,
@@ -172,7 +171,6 @@ impl MainWindow {
         app::set_focus(&btn_start_stop);
 
         Self {
-            wind,
             ww,
             surface_choice,
             g_in,
