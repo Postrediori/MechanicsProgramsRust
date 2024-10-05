@@ -13,5 +13,6 @@ winres = "0.1"
 fltk = { version = "1", features = ["fltk-bundled"] }
 
 [dependencies]
+cascade = "1.0.1"
 fltk = "1"
 rust-embed = "8.3"

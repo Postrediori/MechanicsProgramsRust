@@ -4,6 +4,7 @@ use flow_func::*;
 mod res;
 use res::IconsAssets;
 
+use cascade::cascade;
 use fltk::{
     app, button, frame, group, input, menu, output,
     prelude::{GroupExt, InputExt, MenuExt, WidgetBase, WidgetExt, WindowExt},
@@ -29,77 +30,65 @@ struct DirectFuncTab {
 
 impl DirectFuncTab {
     fn new(
-        direct_functions: &Vec<(&str, DirectFunc)>,
+        direct_functions: &[(&str, DirectFunc)],
         tx: &app::Sender<Message>,
         tabs: &group::Tabs,
     ) -> Self {
-        let mut group = group::Flex::default()
-            .column()
+        let in_lambda;
+        let mut group = cascade!(
+            group::Flex::default().column()
             .with_size(tabs.w(), tabs.h() - TABS_HEIGHT)
             .with_pos(tabs.x(), tabs.y() + TABS_HEIGHT)
             .with_label("vel->func");
-        group.set_tooltip("Converting dimensionless velocity lambda into flow functions");
-        group.set_margin(5);
-
-        // Input row
-        let mut in_lambda;
-        {
-            let mut row = group::Flex::default_fill().row();
-
-            let mut label = frame::Frame::default().with_label("lambda = ");
-            row.fixed(&mut label, 75);
-
-            in_lambda = input::FloatInput::default();
-            in_lambda.set_value(&format!("{:.4}", 1.0));
-            in_lambda.set_tooltip("Dimensionless velocity lambda");
-
-            row.end();
-
-            group.fixed(&mut row, 30);
-        }
-
-        // Calc row
-        {
-            let mut row = group::Flex::default_fill().row();
-
-            frame::Frame::default();
-
-            let mut btn_calc = button::Button::default()
-                .with_size(100, 30)
-                .below_of(&in_lambda, 10)
-                .with_label("Calculate");
-            btn_calc.emit(*tx, Message::CalculateDirect);
-
-            row.fixed(&mut btn_calc, 125);
-
-            frame::Frame::default();
-
-            row.end();
-
-            group.fixed(&mut row, 30);
-        }
+            ..set_tooltip("Converting dimensionless velocity lambda into flow functions");
+            ..set_margin(5);
+            ..fixed(&cascade!(
+                group::Flex::default_fill().row();
+                ..fixed(&frame::Frame::default().with_label("lambda = "), 75);
+                ..add({
+                    in_lambda = cascade!(
+                        input::FloatInput::default();
+                        ..set_value(&format!("{:.4}", 1.0));
+                        ..set_tooltip("Dimensionless velocity lambda");
+                    );
+                    &in_lambda
+                });
+                ..end();
+            ), 30);
+            ..fixed(&cascade!(
+                group::Flex::default_fill().row();
+                ..add(&frame::Frame::default());
+                ..fixed(&cascade!(
+                    button::Button::default().with_size(100, 30).below_of(&in_lambda, 10).with_label("Calculate");
+                    ..emit(*tx, Message::CalculateDirect);
+                ), 125);
+                ..add(&frame::Frame::default());
+                ..end();
+            ), 30);
+        );
 
         // Rows with function outputs
         let outputs: Vec<output::Output> = direct_functions
             .iter()
             .map(|f| {
-                let mut func_row = group::Flex::default_fill().row();
-
-                let mut label = frame::Frame::default().with_label(&format!("{} =", f.0));
-                func_row.fixed(&mut label, 75);
-
-                let mut output = output::Output::default();
-                output.set_value("");
-                output.set_tooltip(&format!("Value of flow function {}(lambda)", f.0));
-
-                func_row.end();
-
-                group.fixed(&mut func_row, 30);
-
+                let output;
+                let func_row = cascade!(
+                    group::Flex::default_fill().row();
+                    ..fixed(&frame::Frame::default().with_label(&format!("{} =", f.0)), 75);
+                    ..add({
+                        output = cascade!(
+                            output::Output::default();
+                            ..set_value("");
+                            ..set_tooltip(&format!("Value of flow function {}(lambda)", f.0));
+                        );
+                        &output
+                    });
+                    ..end();
+                );
+                group.fixed(&func_row, 30);
                 output
             })
             .collect();
-
         group.end();
 
         Self {
@@ -140,14 +129,13 @@ impl InverseFuncTab {
 
             func_choice = menu::Choice::default().with_size(75, 25);
             for f in inverse_functions {
-                func_choice.add_choice(&f.0);
+                func_choice.add_choice(f.0);
             }
             func_choice.set_tooltip("Choose the flow function");
             func_choice.set_value(0);
-            row.fixed(&mut func_choice, 75);
+            row.fixed(&func_choice, 75);
 
-            let mut label = frame::Frame::default().with_label(" = ");
-            row.fixed(&mut label, 25);
+            row.fixed(&frame::Frame::default().with_label(" = "), 25);
 
             input = input::FloatInput::default();
             input.set_value(&format!("{:.4}", 1.0));
@@ -155,7 +143,7 @@ impl InverseFuncTab {
 
             row.end();
 
-            group.fixed(&mut row, 30);
+            group.fixed(&row, 30);
         }
 
         // Calc row
@@ -169,13 +157,13 @@ impl InverseFuncTab {
                 .with_label("Calculate");
             btn_calc2.emit(*tx, Message::CalculateInverse);
 
-            row.fixed(&mut btn_calc2, 125);
+            row.fixed(&btn_calc2, 125);
 
             frame::Frame::default();
 
             row.end();
 
-            group.fixed(&mut row, 30);
+            group.fixed(&row, 30);
         }
 
         let outputs = ["lambda1", "lambda2"]
@@ -183,15 +171,14 @@ impl InverseFuncTab {
             .map(|s| {
                 let mut row = group::Flex::default_fill().row();
 
-                let mut label = frame::Frame::default().with_label(&format!("{} =", s));
-                row.fixed(&mut label, 75);
+                row.fixed(&frame::Frame::default().with_label(&format!("{} =", s)), 75);
 
                 let mut output = output::Output::default();
                 output.set_tooltip("Dimensionless velocity lambda");
 
                 row.end();
 
-                group.fixed(&mut row, 30);
+                group.fixed(&row, 30);
 
                 output
             })
@@ -266,8 +253,8 @@ fn main() {
                         .parse::<f64>()
                         .expect("Not a number!");
 
-                    for i in 0..direct_functions.len() {
-                        let result = direct_functions[i].1(lambda_val);
+                    for (i, item) in direct_functions.iter().enumerate() {
+                        let result = item.1(lambda_val);
                         direct_tab.outputs[i].set_value(&format!("{:.4}", result));
                     }
                 }
