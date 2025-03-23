@@ -1,5 +1,7 @@
+#![allow(clippy::cast_sign_loss)]
+
 mod flow_func;
-use flow_func::*;
+use flow_func::{DirectFunc, InverseFunc};
 
 mod res;
 use res::IconsAssets;
@@ -30,7 +32,7 @@ struct DirectFuncTab {
 impl DirectFuncTab {
     fn new(
         direct_functions: &Vec<(&str, DirectFunc)>,
-        tx: &app::Sender<Message>,
+        tx: app::Sender<Message>,
         tabs: &group::Tabs,
     ) -> Self {
         let mut group = group::Flex::default()
@@ -46,8 +48,8 @@ impl DirectFuncTab {
         {
             let mut row = group::Flex::default_fill().row();
 
-            let mut label = frame::Frame::default().with_label("lambda = ");
-            row.fixed(&mut label, 75);
+            let label = frame::Frame::default().with_label("lambda = ");
+            row.fixed(&label, 75);
 
             in_lambda = input::FloatInput::default();
             in_lambda.set_value(&format!("{:.4}", 1.0));
@@ -55,7 +57,7 @@ impl DirectFuncTab {
 
             row.end();
 
-            group.fixed(&mut row, 30);
+            group.fixed(&row, 30);
         }
 
         // Calc row
@@ -68,15 +70,15 @@ impl DirectFuncTab {
                 .with_size(100, 30)
                 .below_of(&in_lambda, 10)
                 .with_label("Calculate");
-            btn_calc.emit(*tx, Message::CalculateDirect);
+            btn_calc.emit(tx, Message::CalculateDirect);
 
-            row.fixed(&mut btn_calc, 125);
+            row.fixed(&btn_calc, 125);
 
             frame::Frame::default();
 
             row.end();
 
-            group.fixed(&mut row, 30);
+            group.fixed(&row, 30);
         }
 
         // Rows with function outputs
@@ -85,8 +87,8 @@ impl DirectFuncTab {
             .map(|f| {
                 let mut func_row = group::Flex::default_fill().row();
 
-                let mut label = frame::Frame::default().with_label(&format!("{} =", f.0));
-                func_row.fixed(&mut label, 75);
+                let label = frame::Frame::default().with_label(&format!("{} =", f.0));
+                func_row.fixed(&label, 75);
 
                 let mut output = output::Output::default();
                 output.set_value("");
@@ -94,7 +96,7 @@ impl DirectFuncTab {
 
                 func_row.end();
 
-                group.fixed(&mut func_row, 30);
+                group.fixed(&func_row, 30);
 
                 output
             })
@@ -121,7 +123,7 @@ struct InverseFuncTab {
 impl InverseFuncTab {
     fn new(
         inverse_functions: &Vec<(&str, InverseFunc)>,
-        tx: &app::Sender<Message>,
+        tx: app::Sender<Message>,
         tabs: &group::Tabs,
     ) -> Self {
         let mut group = group::Flex::default()
@@ -140,14 +142,14 @@ impl InverseFuncTab {
 
             func_choice = menu::Choice::default().with_size(75, 25);
             for f in inverse_functions {
-                func_choice.add_choice(&f.0);
+                func_choice.add_choice(f.0);
             }
             func_choice.set_tooltip("Choose the flow function");
             func_choice.set_value(0);
-            row.fixed(&mut func_choice, 75);
+            row.fixed(&func_choice, 75);
 
-            let mut label = frame::Frame::default().with_label(" = ");
-            row.fixed(&mut label, 25);
+            let label = frame::Frame::default().with_label(" = ");
+            row.fixed(&label, 25);
 
             input = input::FloatInput::default();
             input.set_value(&format!("{:.4}", 1.0));
@@ -155,7 +157,7 @@ impl InverseFuncTab {
 
             row.end();
 
-            group.fixed(&mut row, 30);
+            group.fixed(&row, 30);
         }
 
         // Calc row
@@ -167,15 +169,15 @@ impl InverseFuncTab {
             let mut btn_calc2 = button::Button::default()
                 .with_size(100, 30)
                 .with_label("Calculate");
-            btn_calc2.emit(*tx, Message::CalculateInverse);
+            btn_calc2.emit(tx, Message::CalculateInverse);
 
-            row.fixed(&mut btn_calc2, 125);
+            row.fixed(&btn_calc2, 125);
 
             frame::Frame::default();
 
             row.end();
 
-            group.fixed(&mut row, 30);
+            group.fixed(&row, 30);
         }
 
         let outputs = ["lambda1", "lambda2"]
@@ -183,15 +185,15 @@ impl InverseFuncTab {
             .map(|s| {
                 let mut row = group::Flex::default_fill().row();
 
-                let mut label = frame::Frame::default().with_label(&format!("{} =", s));
-                row.fixed(&mut label, 75);
+                let label = frame::Frame::default().with_label(&format!("{s} ="));
+                row.fixed(&label, 75);
 
                 let mut output = output::Output::default();
                 output.set_tooltip("Dimensionless velocity lambda");
 
                 row.end();
 
-                group.fixed(&mut row, 30);
+                group.fixed(&row, 30);
 
                 output
             })
@@ -240,10 +242,10 @@ fn main() {
         .center_of_parent();
 
     // Tab with direct calculations
-    let mut direct_tab = DirectFuncTab::new(&direct_functions, &tx, &tabs);
+    let mut direct_tab = DirectFuncTab::new(&direct_functions, tx, &tabs);
 
     // Tab with inverse calculations
-    let mut inverse_tab = InverseFuncTab::new(&inverse_functions, &tx, &tabs);
+    let mut inverse_tab = InverseFuncTab::new(&inverse_functions, tx, &tabs);
 
     tabs.end();
 
@@ -266,9 +268,9 @@ fn main() {
                         .parse::<f64>()
                         .expect("Not a number!");
 
-                    for i in 0..direct_functions.len() {
-                        let result = direct_functions[i].1(lambda_val);
-                        direct_tab.outputs[i].set_value(&format!("{:.4}", result));
+                    for (i, f) in direct_functions.iter().enumerate() {
+                        let result = f.1(lambda_val);
+                        direct_tab.outputs[i].set_value(&format!("{result:.4}"));
                     }
                 }
                 Message::CalculateInverse => {
@@ -282,18 +284,15 @@ fn main() {
                     let (l1, l2) = inverse_functions[func_id as usize].1(func_val);
 
                     // Show first solution
-                    inverse_tab.out_lambda[0].set_value(&format!("{:.4}", l1));
+                    inverse_tab.out_lambda[0].set_value(&format!("{l1:.4}"));
 
                     // Show second solution
-                    match l2 {
-                        Some(lambda) => {
-                            inverse_tab.out_lambda[1].activate();
-                            inverse_tab.out_lambda[1].set_value(&format!("{:.4}", lambda));
-                        }
-                        None => {
-                            inverse_tab.out_lambda[1].set_value("");
-                            inverse_tab.out_lambda[1].deactivate();
-                        }
+                    if let Some(lambda) = l2 {
+                        inverse_tab.out_lambda[1].activate();
+                        inverse_tab.out_lambda[1].set_value(&format!("{lambda:.4}"));
+                    } else {
+                        inverse_tab.out_lambda[1].set_value("");
+                        inverse_tab.out_lambda[1].deactivate();
                     }
                 }
             }

@@ -12,6 +12,8 @@ use res::IconsAssets;
 const WIDTH: i32 = 700;
 const HEIGHT: i32 = 500;
 
+const DEFAULT_Q_VALUE: f64 = 0.5;
+
 fn main() {
     let a = app::App::default();
     app::get_system_colors();
@@ -45,10 +47,10 @@ fn main() {
 
         let (lambda1, lambda2) = fluid_func::lambda_q(q_val);
 
-        let lambda1_str = format!("Lambda1: {:.4}\n", lambda1);
+        let lambda1_str = format!("Lambda1: {lambda1:.4}\n");
         buffer.append(&lambda1_str);
 
-        let lambda2_str = format!("Lambda2: {:.4}\n", lambda2);
+        let lambda2_str = format!("Lambda2: {lambda2:.4}\n");
         buffer.append(&lambda2_str);
 
         let eps_str = format!("Epsilon: {:.6}\n", fluid_func::EPS);
@@ -59,8 +61,7 @@ fn main() {
     };
 
     // Initial setup of controls
-    const DEFAULT_Q_VALUE: f64 = 0.5;
-    let q_str = format!("{:.4}", DEFAULT_Q_VALUE);
+    let q_str = format!("{DEFAULT_Q_VALUE:.4}");
     inpq.set_value(&q_str);
     set_q_value(DEFAULT_Q_VALUE);
 

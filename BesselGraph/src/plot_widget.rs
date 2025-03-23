@@ -1,3 +1,8 @@
+#![allow(clippy::cast_possible_wrap)]
+#![allow(clippy::cast_possible_truncation)]
+#![allow(clippy::cast_lossless)]
+#![allow(clippy::cast_sign_loss)]
+
 use fltk::{
     draw, enums,
     prelude::{WidgetBase, WidgetExt},
@@ -70,6 +75,19 @@ pub struct PlotWidget {
 
 impl PlotWidget {
     pub fn new(x: i32, y: i32, width: i32, height: i32) -> Self {
+        const MARGIN: i32 = 20;
+        const TICK_SIZE: i32 = 10;
+        const TICK_COUNT: i32 = 20;
+
+        const AXIS_X: f64 = 0.0;
+        const AXIS_Y: f64 = 0.0;
+
+        const BOUNDS_COLOR: enums::Color = enums::Color::Dark3;
+        const BG_COLOR: enums::Color = enums::Color::White;
+        const PLOT_BOUNDS_COLOR: enums::Color = enums::Color::Black;
+        const TICKS_COLOR: enums::Color = enums::Color::Black;
+        const AXES_COLOR: enums::Color = enums::Color::Black;
+
         let mut inner = widget::Widget::default()
             .with_pos(x, y)
             .with_size(width, height);
@@ -84,17 +102,6 @@ impl PlotWidget {
 
         let plots: Vec<(PlotFunctionInfo, PlotLines)> = Vec::new();
         let plots = Rc::from(RefCell::from(plots));
-
-        const MARGIN: i32 = 20;
-        const TICK_SIZE: i32 = 10;
-
-        let tick_count: i32 = 20;
-
-        const BOUNDS_COLOR: enums::Color = enums::Color::Dark3;
-        const BG_COLOR: enums::Color = enums::Color::White;
-        const PLOT_BOUNDS_COLOR: enums::Color = enums::Color::Black;
-        const TICKS_COLOR: enums::Color = enums::Color::Black;
-        const AXES_COLOR: enums::Color = enums::Color::Black;
 
         let area_val = area.clone();
         let plots_val = plots.clone();
@@ -118,10 +125,9 @@ impl PlotWidget {
             // Calculate ticks
 
             // X-Axis ticks
-            let mut ticks_x: Vec<Line> = Vec::new();
-            ticks_x.reserve((tick_count + 1) as usize);
-            let tx: f64 = (area.xmax - area.xmin) / (tick_count as f64);
-            for i in 0..tick_count + 1 {
+            let mut ticks_x: Vec<Line> = Vec::with_capacity((TICK_COUNT + 1) as usize);
+            let tx: f64 = (area.xmax - area.xmin) / (TICK_COUNT as f64);
+            for i in 0..=TICK_COUNT {
                 let xc: f64 = area.xmin + tx * (i as f64);
                 let tick_scale: f64 = if i % 2 == 0 { 1.0 } else { 0.5 };
                 ticks_x.push((
@@ -137,10 +143,9 @@ impl PlotWidget {
             }
 
             // Y-Axis ticks
-            let mut ticks_y: Vec<Line> = Vec::new();
-            ticks_y.reserve((tick_count + 1) as usize);
-            let ty: f64 = (area.ymax - area.ymin) / (tick_count as f64);
-            for i in 0..tick_count + 1 {
+            let mut ticks_y: Vec<Line> = Vec::with_capacity((TICK_COUNT + 1) as usize);
+            let ty: f64 = (area.ymax - area.ymin) / (TICK_COUNT as f64);
+            for i in 0..=TICK_COUNT {
                 let yc: f64 = area.ymin + ty * (i as f64);
                 let tick_scale: f64 = if i % 2 == 0 { 1.0 } else { 0.5 };
                 ticks_y.push((
@@ -175,8 +180,6 @@ impl PlotWidget {
             );
 
             // Draw origin axes (if visible)
-            const AXIS_X: f64 = 0.0;
-            const AXIS_Y: f64 = 0.0;
             draw::set_draw_color(AXES_COLOR);
             draw::set_line_style(draw::LineStyle::DashDotDot, 1);
 
@@ -270,9 +273,7 @@ impl PlotWidget {
             draw::set_line_style(draw::LineStyle::Solid, 0);
         });
 
-        inner.handle(move |_i, ev| match ev {
-            _ => false,
-        });
+        inner.handle(move |_i, _ev| false);
 
         Self { inner, area, plots }
     }

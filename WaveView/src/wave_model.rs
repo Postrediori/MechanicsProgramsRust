@@ -1,3 +1,8 @@
+#![allow(clippy::cast_precision_loss)]
+#![allow(clippy::cast_possible_truncation)]
+#![allow(clippy::cast_lossless)]
+#![allow(clippy::cast_sign_loss)]
+
 use crate::surface_functions;
 use std::f64::consts::PI;
 
@@ -121,12 +126,7 @@ impl WaveModel {
             let x = x0 + self.f_x(x0, z0, self.time);
             let z = z0 - self.f_z(x0, z0, self.time);
 
-            self.points[idx] = Point {
-                x: x,
-                z: z,
-                x0: x0,
-                z0: z0,
-            };
+            self.points[idx] = Point { x, z, x0, z0 };
         }
     }
 
@@ -168,7 +168,7 @@ impl WaveModel {
         let maxx = d;
         let dx = (maxx - minx) / (MAX_ITER as f64);
 
-        let s: f64 = (0..MAX_ITER + 1)
+        let s: f64 = (0..=MAX_ITER)
             .map(|i| {
                 // Calculate plot points
                 let xi = minx + dx * (i as f64);
@@ -220,7 +220,7 @@ impl WaveModel {
                 .particles
                 .iter()
                 .map(|p| {
-                    let g_xn = WaveModel::g_xn(z0, &p, self.h, t);
+                    let g_xn = WaveModel::g_xn(z0, p, self.h, t);
                     g_xn * (p.k * x0).sin()
                 })
                 .sum::<f64>()
@@ -232,7 +232,7 @@ impl WaveModel {
                 .particles
                 .iter()
                 .map(|p| {
-                    let g_zn = WaveModel::g_zn(z0, &p, self.h, t);
+                    let g_zn = WaveModel::g_zn(z0, p, self.h, t);
                     g_zn * (p.k * x0).cos()
                 })
                 .sum::<f64>()

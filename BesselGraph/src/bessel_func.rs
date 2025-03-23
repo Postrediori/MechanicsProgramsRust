@@ -1,5 +1,10 @@
-const GAMMA: f64 = 0.5772156649;
-const PI: f64 = 3.1415926;
+#![allow(clippy::cast_precision_loss)]
+#![allow(clippy::many_single_char_names)]
+
+use core::f64;
+
+const GAMMA: f64 = 0.577_215_664_9;
+const PI_POW_2: f64 = f64::consts::PI * f64::consts::PI;
 const DELTA: f64 = 1e-6;
 const MAX_ITER: i64 = 10_000;
 
@@ -36,7 +41,7 @@ fn d_y0_1(theta: f64, c: &Constants) -> f64 {
 }
 
 pub fn y0_1(x: f64) -> f64 {
-    integrate(DELTA, PI / 2.0, MAX_ITER, d_y0_1, &[x]) * 4.0 / (PI * PI)
+    integrate(DELTA, f64::consts::PI / 2.0, MAX_ITER, d_y0_1, &[x]) * 4.0 / PI_POW_2
 }
 
 // Bessel Function of the Second Kind, 0-th order
@@ -49,7 +54,7 @@ fn d_j0(theta: f64, c: &Constants) -> f64 {
 }
 
 fn j0(x: f64) -> f64 {
-    integrate(0.0, PI, MAX_ITER, d_j0, &[x]) / PI
+    integrate(0.0, f64::consts::PI, MAX_ITER, d_j0, &[x]) / f64::consts::PI
 }
 
 // Bessel Function of the Second Kind, 0-th order infinite series
@@ -74,5 +79,5 @@ pub fn y0_2(x: f64) -> f64 {
         p += 1.0 / (dn as f64);
     }
 
-    (((x / 2.0).ln() + GAMMA) * j0(x) + s) * 2.0 / PI
+    (((x / 2.0).ln() + GAMMA) * j0(x) + s) * 2.0 / f64::consts::PI
 }

@@ -1,3 +1,5 @@
+#![allow(clippy::cast_sign_loss)]
+
 use image::RgbImage;
 
 pub struct FrameSaver {
@@ -13,11 +15,12 @@ impl FrameSaver {
         self.index = 0;
     }
 
-    pub fn save_frame(&mut self, data: &Vec<u8>, w: i32, h: i32) -> bool {
+    pub fn save_frame(&mut self, data: &[u8], w: i32, h: i32) -> bool {
+        const EXTENSION: &str = "png";
+
         let img = RgbImage::from_raw(w as u32, h as u32, data.to_vec())
             .expect("container should have the right size for the image dimensions");
 
-        const EXTENSION: &'static str = "png";
         let file_name = format!("frame{:04}.{}", self.index, &EXTENSION);
 
         self.index += 1;

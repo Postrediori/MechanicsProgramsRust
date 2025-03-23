@@ -1,3 +1,7 @@
+#![allow(clippy::too_many_lines)]
+#![allow(clippy::cast_possible_wrap)]
+#![allow(clippy::cast_possible_truncation)]
+
 mod coupled_pendulums;
 mod double_pendulum;
 mod draw_primitives;
@@ -19,7 +23,7 @@ use pendulum_model::{ParametrizedModel, PendulumModel};
 use res::IconsAssets;
 use simple_pendulum::SimplePendulumModel;
 
-use fltk::{prelude::*, *};
+use fltk::{app, button, draw, enums, frame, group, prelude::*, window};
 
 use std::cell::RefCell;
 use std::rc::Rc;
@@ -98,13 +102,15 @@ impl OffscreenSaver for FrameSaver {
                 self.save_frame(&data, img.width(), img.height());
             }
             Err(error) => {
-                eprintln!("Cannot capture frame to image. Error: {}", error);
+                eprintln!("Cannot capture frame to image. Error: {error}");
             }
         }
     }
 }
 
 fn main() {
+    const MODEL_SIZE: i32 = HEIGHT - MARGIN * 2;
+
     // Models list object
     let models = ModelList {
         current_model: 0,
@@ -139,7 +145,6 @@ fn main() {
     let mut main_layout = group::Flex::default_fill().row();
     main_layout.set_margin(MARGIN);
 
-    const MODEL_SIZE: i32 = HEIGHT - MARGIN * 2;
     let mut model_widget = frame::Frame::default().with_size(MODEL_SIZE, MODEL_SIZE);
 
     // Controls panel
@@ -147,8 +152,8 @@ fn main() {
     controls_column.set_margin(MARGIN);
 
     // Spacer
-    let mut spacer = frame::Frame::default();
-    controls_column.fixed(&mut spacer, 15);
+    let spacer = frame::Frame::default();
+    controls_column.fixed(&spacer, 15);
 
     // Model selector
     let mut model_select_group;
@@ -168,20 +173,20 @@ fn main() {
                 btn.set_value(true);
             }
 
-            model_select_group.fixed(&mut btn, 25);
+            model_select_group.fixed(&btn, 25);
         }
 
         model_select_group.end();
 
         controls_column.fixed(
-            &mut model_select_group,
+            &model_select_group,
             models.borrow().models.len() as i32 * 30 + 5,
         );
     }
 
     // Spacer
-    let mut spacer = frame::Frame::default();
-    controls_column.fixed(&mut spacer, 15);
+    let spacer = frame::Frame::default();
+    controls_column.fixed(&spacer, 15);
 
     // Parameters section
     let mut table;
@@ -205,22 +210,22 @@ fn main() {
             apply_btn = button::Button::default().with_label("@refresh Apply @refresh");
             apply_btn.set_tooltip("Apply parameters and restart the model");
             apply_btn.emit(tx, Message::Apply);
-            row.fixed(&mut apply_btn, 90);
+            row.fixed(&apply_btn, 90);
 
             frame::Frame::default();
 
             row.end();
-            params_group.fixed(&mut row, 25);
+            params_group.fixed(&row, 25);
         }
 
         params_group.end();
 
-        controls_column.fixed(&mut params_group, 205);
+        controls_column.fixed(&params_group, 205);
     }
 
     // Spacer
-    let mut spacer = frame::Frame::default();
-    controls_column.fixed(&mut spacer, 15);
+    let spacer = frame::Frame::default();
+    controls_column.fixed(&spacer, 15);
 
     // Model controls
     let mut step_btn;
@@ -241,12 +246,12 @@ fn main() {
             step_btn = button::Button::default().with_label("@>| Step @>|");
             step_btn.set_tooltip("Perform one step of the simulation");
             step_btn.emit(tx, Message::Step);
-            row.fixed(&mut step_btn, 90);
+            row.fixed(&step_btn, 90);
 
             frame::Frame::default();
 
             row.end();
-            group.fixed(&mut row, 25);
+            group.fixed(&row, 25);
         }
 
         {
@@ -257,18 +262,18 @@ fn main() {
             start_stop_btn = button::Button::default().with_label("@> Start @>");
             start_stop_btn.set_tooltip("Start/Stop the simulation");
             start_stop_btn.emit(tx, Message::StartStop);
-            row.fixed(&mut start_stop_btn, 90);
+            row.fixed(&start_stop_btn, 90);
 
             app::set_focus(&start_stop_btn);
 
             frame::Frame::default();
 
             row.end();
-            group.fixed(&mut row, 25);
+            group.fixed(&row, 25);
         }
 
         group.end();
-        controls_column.fixed(&mut group, 65);
+        controls_column.fixed(&group, 65);
     }
 
     // Save frames
@@ -287,12 +292,12 @@ fn main() {
             let mut save_frame_btn = button::Button::default().with_label("Save frame");
             save_frame_btn.emit(tx, Message::SaveFrame);
             save_frame_btn.set_tooltip("Save single frame of the simulation");
-            row.fixed(&mut save_frame_btn, 90);
+            row.fixed(&save_frame_btn, 90);
 
             frame::Frame::default();
 
             row.end();
-            group.fixed(&mut row, 25);
+            group.fixed(&row, 25);
         }
 
         {
@@ -302,20 +307,20 @@ fn main() {
 
             save_all_frames_cb = button::CheckButton::default().with_label("Save all frames");
             save_all_frames_cb.set_tooltip("Save all frames of the running simulation");
-            row.fixed(&mut save_all_frames_cb, 125);
+            row.fixed(&save_all_frames_cb, 125);
 
             frame::Frame::default();
 
             row.end();
-            group.fixed(&mut row, 25);
+            group.fixed(&row, 25);
         }
 
         group.end();
-        controls_column.fixed(&mut group, 65);
+        controls_column.fixed(&group, 65);
     }
 
     controls_column.end();
-    main_layout.fixed(&mut controls_column, WIDTH - MODEL_WIDGET_SIZE - MARGIN * 3);
+    main_layout.fixed(&controls_column, WIDTH - MODEL_WIDGET_SIZE - MARGIN * 3);
 
     main_layout.end();
 

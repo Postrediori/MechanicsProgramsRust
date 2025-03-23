@@ -1,3 +1,7 @@
+#![allow(clippy::cast_lossless)]
+#![allow(clippy::cast_possible_truncation)]
+#![allow(clippy::too_many_lines)]
+
 use fltk::{
     draw, enums,
     prelude::{WidgetBase, WidgetExt},
@@ -35,6 +39,20 @@ pub struct GraphWidget {
 
 impl GraphWidget {
     pub fn new(x: i32, y: i32, width: i32, height: i32) -> Self {
+        const MARGIN: i32 = 20;
+        const TICK_SIZE: i32 = 10;
+
+        let point_count: i32 = 500;
+        let tick_count: i32 = 20;
+
+        let bg_color = enums::Color::White;
+        let bounds_color = enums::Color::Black;
+        let ticks_color = enums::Color::Black;
+
+        let plot_color = enums::Color::from_rgb(255, 25, 50);
+        let q_line_color = enums::Color::from_rgb(32, 128, 32);
+        let lambda_line_color = enums::Color::from_rgb(0, 64, 192);
+
         let mut inner = widget::Widget::default()
             .with_pos(x, y)
             .with_size(width, height);
@@ -59,24 +77,10 @@ impl GraphWidget {
         let lambda1_val = lambda1.clone();
         let lambda2_val = lambda2.clone();
 
-        const MARGIN: i32 = 20;
-        const TICK_SIZE: i32 = 10;
-
-        let point_count: i32 = 500;
-        let tick_count: i32 = 20;
-
-        let bg_color = enums::Color::White;
-        let bounds_color = enums::Color::Black;
-        let ticks_color = enums::Color::Black;
-
-        let plot_color = enums::Color::from_rgb(255, 25, 50);
-        let q_line_color = enums::Color::from_rgb(32, 128, 32);
-        let lambda_line_color = enums::Color::from_rgb(0, 64, 192);
-
         // Calculate plot points
         let mut point_vec: Vec<Point> = Vec::new();
         let px: f64 = (area.xmax - area.xmin) / (point_count as f64);
-        for i in 0..point_count + 1 {
+        for i in 0..=point_count {
             let xc: f64 = area.xmin + px * (i as f64);
             point_vec.push(Point {
                 x: xc,
@@ -101,7 +105,7 @@ impl GraphWidget {
             // X-Axis ticks
             let mut ticks_x: Vec<Tick> = Vec::new();
             let tx: f64 = (area.xmax - area.xmin) / (tick_count as f64);
-            for i in 0..tick_count + 1 {
+            for i in 0..=tick_count {
                 let xc: f64 = area.xmin + tx * (i as f64);
                 let tick_scale: f64 = if i % 2 == 0 { 1.0 } else { 0.5 };
                 ticks_x.push(Tick {
@@ -119,7 +123,7 @@ impl GraphWidget {
             // Y-Axis ticks
             let mut ticks_y: Vec<Tick> = Vec::new();
             let ty: f64 = (area.ymax - area.ymin) / (tick_count as f64);
-            for i in 0..tick_count + 1 {
+            for i in 0..=tick_count {
                 let yc: f64 = area.ymin + ty * (i as f64);
                 let tick_scale: f64 = if i % 2 == 0 { 1.0 } else { 0.5 };
                 ticks_y.push(Tick {
@@ -218,8 +222,8 @@ impl GraphWidget {
             draw::set_font(enums::Font::HelveticaBold, 14);
 
             draw::draw_text2(
-                &x_label,
-                get_x(area.xmin + ((area.xmax - area.xmin) * 0.5) as f64),
+                x_label,
+                get_x(area.xmin + (area.xmax - area.xmin) * 0.5),
                 get_y(area.ymin - scale_y * ((TICK_SIZE as f64) * 1.5)),
                 0,
                 0,
@@ -227,9 +231,9 @@ impl GraphWidget {
             );
 
             draw::draw_text2(
-                &y_label,
+                y_label,
                 get_x(area.xmin - scale_x * (TICK_SIZE as f64) * 1.5),
-                get_y(area.ymin + ((area.ymax - area.ymin) * 0.5) as f64),
+                get_y(area.ymin + (area.ymax - area.ymin) * 0.5),
                 0,
                 0,
                 enums::Align::Right,
@@ -258,9 +262,7 @@ impl GraphWidget {
             }
         });
 
-        inner.handle(move |_i, ev| match ev {
-            _ => false,
-        });
+        inner.handle(move |_i, _ev| false);
 
         Self {
             inner,

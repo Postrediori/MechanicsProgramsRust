@@ -1,3 +1,5 @@
+#![allow(clippy::cast_lossless)]
+
 use std::f64::consts::TAU;
 
 use fltk::{draw, enums};
@@ -62,7 +64,7 @@ pub fn draw_spring(x1: i32, y1: i32, x2: i32, y2: i32, sections: i32, width: i32
     // Draw beginning segment
     draw::vertex(x1 as f64, y1 as f64);
 
-    for i in 0..k + 1 {
+    for i in 0..=k {
         let x_l = dl + dl_spring * (i as f64); // +dl for 'real' beginning of spring segments
         let y_l = ((i as f64) * (sections as f64) * TAU / (k as f64)).sin() * (width as f64);
 
@@ -80,13 +82,14 @@ pub fn draw_spring(x1: i32, y1: i32, x2: i32, y2: i32, sections: i32, width: i32
 }
 
 pub fn draw_rest(x: i32, y: i32, width: i32, height: i32) {
+    const COLS: i32 = 10;
+    const ROWS: i32 = 4;
+    const SIZE: i32 = 1;
+
     let x0 = x - width / 2;
     let y0 = y - height / 2;
     draw::draw_rect_fill(x0, y0, width, height, REST_COLOR);
 
-    const COLS: i32 = 10;
-    const ROWS: i32 = 4;
-    const SIZE: i32 = 1;
     draw::set_draw_color(REST_DOT_COLOR);
     for j in 1..ROWS {
         for i in ((j + 1) % 2)..COLS {

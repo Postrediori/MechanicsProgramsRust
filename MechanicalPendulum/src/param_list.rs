@@ -23,7 +23,7 @@ impl ParamList {
     pub fn get_by_key(&self, key: &str) -> f64 {
         match self.params.iter().find(|&x| x.0.eq(key)) {
             Some(x) => x.2,
-            None => panic!("No parameter with key '{}' found", key),
+            None => panic!("No parameter with key '{key}' found"),
         }
     }
 
@@ -55,7 +55,7 @@ impl ParamList {
     }
 
     pub fn copy_from(&mut self, other: &ParamList) {
-        self.params = other.params.clone();
+        self.params.clone_from(&other.params);
     }
 }
 

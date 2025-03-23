@@ -1,3 +1,5 @@
+#![allow(clippy::too_many_lines)]
+
 mod bessel_func;
 mod plot_widget;
 use plot_widget::{Area, PlotFunctionInfo, PlotLines, PlotWidget};
@@ -5,7 +7,7 @@ use plot_widget::{Area, PlotFunctionInfo, PlotLines, PlotWidget};
 mod res;
 use res::IconsAssets;
 
-use fltk::{prelude::*, *};
+use fltk::{app, button, enums, frame, group, input, prelude::*, window};
 
 use std::thread;
 
@@ -33,12 +35,12 @@ fn main() {
     let plots: Vec<PlotFunctionInfo> = [
         PlotFunctionInfo {
             f: bessel_func::y0_1,
-            color: enums::Color::from_u32(0xa00000),
+            color: enums::Color::from_u32(0x00_a0_00_00),
             name: "Integration".to_string(),
         },
         PlotFunctionInfo {
             f: bessel_func::y0_2,
-            color: enums::Color::from_u32(0x99ccff),
+            color: enums::Color::from_u32(0x00_99_cc_ff),
             name: "Infinite series".to_string(),
         },
     ]
@@ -306,7 +308,7 @@ fn main() {
                         w.redraw_label();
                     }
 
-                    let area = plot_widget.get_area().clone();
+                    let area = plot_widget.get_area();
                     let _ = plots
                         .into_iter()
                         .map(|p| {

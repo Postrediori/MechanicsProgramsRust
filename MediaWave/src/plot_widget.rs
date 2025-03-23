@@ -1,4 +1,10 @@
-use fltk::{prelude::*, *};
+#![allow(clippy::cast_possible_truncation)]
+#![allow(clippy::cast_lossless)]
+#![allow(clippy::cast_sign_loss)]
+#![allow(clippy::cast_precision_loss)]
+#![allow(clippy::too_many_lines)]
+
+use fltk::{draw, enums, prelude::*, widget, widget_extends};
 
 use std::cell::RefCell;
 use std::rc::Rc;
@@ -64,13 +70,23 @@ impl PlotWidget {
         (self.area.ymax - y) / self.pixel_y + MARGIN as f64
     }
 
-    pub fn draw_plot(
-        &mut self,
-        x_points: &Vec<f64>,
-        y_points: &Vec<f64>,
-        len: f64,
-        time: Option<f64>,
-    ) {
+    pub fn draw_plot(&mut self, x_points: &[f64], y_points: &[f64], len: f64, time: Option<f64>) {
+        const AXIS_Y: f64 = 0.0;
+
+        const PALETTE: [enums::Color; 11] = [
+            enums::Color::from_u32(0x00_a5_00_27),
+            enums::Color::from_u32(0x00_d7_30_27),
+            enums::Color::from_u32(0x00_f4_6d_43),
+            enums::Color::from_u32(0x00_fd_ae_61),
+            enums::Color::from_u32(0x00_fe_e0_90),
+            enums::Color::from_u32(0x00_ff_ff_bf),
+            enums::Color::from_u32(0x00_e0_f3_f9),
+            enums::Color::from_u32(0x00_ab_d9_ea),
+            enums::Color::from_u32(0x00_74_ad_d1),
+            enums::Color::from_u32(0x00_45_75_b4),
+            enums::Color::from_u32(0x00_31_36_95),
+        ];
+
         let (width, height) = (self.w(), self.h());
 
         let area = Area {
@@ -99,7 +115,7 @@ impl PlotWidget {
         match time {
             None => {}
             Some(t) => {
-                let time_str = format!("time: {:.4}", t);
+                let time_str = format!("time: {t:.4}");
                 draw::draw_text2(
                     &time_str,
                     self.get_x((area.xmax - area.xmin) / 2.0 + area.xmin) as i32,
@@ -112,22 +128,6 @@ impl PlotWidget {
         }
 
         // Heatmap (lowermost layer)
-        const AXIS_Y: f64 = 0.0;
-
-        const PALETTE: [enums::Color; 11] = [
-            enums::Color::from_u32(0xa50027),
-            enums::Color::from_u32(0xd73027),
-            enums::Color::from_u32(0xf46d43),
-            enums::Color::from_u32(0xfdae61),
-            enums::Color::from_u32(0xfee090),
-            enums::Color::from_u32(0xffffbf),
-            enums::Color::from_u32(0xe0f3f9),
-            enums::Color::from_u32(0xabd9ea),
-            enums::Color::from_u32(0x74add1),
-            enums::Color::from_u32(0x4575b4),
-            enums::Color::from_u32(0x313695),
-        ];
-
         for i in 0..y_points.len() {
             let y = y_points[i];
             let t = 1.0 - (y - area.ymin) / (area.ymax - area.ymin);
@@ -157,7 +157,7 @@ impl PlotWidget {
 
         // Ticks
         let dx = (area.xmax - area.xmin) / TICKS_COUNT as f64;
-        for i in 0..TICKS_COUNT + 1 {
+        for i in 0..=TICKS_COUNT {
             draw::draw_yxline(
                 self.get_x(area.xmin + dx * (i as f64)) as i32,
                 self.get_y(area.ymin) as i32,
@@ -166,7 +166,7 @@ impl PlotWidget {
         }
 
         let dy = (area.ymax - area.ymin) / TICKS_COUNT as f64;
-        for i in 0..TICKS_COUNT + 1 {
+        for i in 0..=TICKS_COUNT {
             draw::draw_xyline(
                 self.get_x(area.xmin) as i32,
                 self.get_y(area.ymin + dy * (i as f64)) as i32,
@@ -230,7 +230,7 @@ impl PlotWidget {
 
         // Axis label
         draw::set_font(enums::Font::Helvetica, 12);
-        let yaxis_str = format!("{:.1}", AXIS_Y);
+        let yaxis_str = format!("{AXIS_Y:.1}");
         draw::draw_text2(
             &yaxis_str,
             self.get_x(area.xmin) as i32 - TICK_SIZE - 2,

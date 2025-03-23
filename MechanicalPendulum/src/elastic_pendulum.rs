@@ -1,8 +1,10 @@
+#![allow(clippy::cast_lossless)]
+
 use fltk::{draw, enums};
 
-use crate::draw_primitives::*;
-use crate::param_list::*;
-use crate::pendulum_model::*;
+use crate::draw_primitives::{draw_axis, draw_rest, draw_spring, draw_weight};
+use crate::param_list::{ParamList, Parametrized};
+use crate::pendulum_model::{ParametrizedModel, PendulumModel};
 
 // Model of an elastic pendulum
 const THETA_0: f64 = 45.0;
@@ -112,15 +114,18 @@ impl PendulumModel for ElasticPendulumModel {
     }
 
     fn draw(&self, w: i32, h: i32, offs: &draw::Offscreen) {
-        offs.begin();
-
         // Geometry sizes
         const MARGIN: i32 = 20;
+        const FIX_WIDTH: i32 = 90;
+        const FIX_HEIGHT: i32 = 25;
+        const SPRING_WIDTH: i32 = 15;
 
         // Color palette
         const BG_COLOR: enums::Color = enums::Color::White;
         const BOUNDS_COLOR: enums::Color = enums::Color::Dark3;
         const TEXT_COLOR: enums::Color = enums::Color::Black;
+
+        offs.begin();
 
         // Clear background
         draw::draw_rect_fill(0, 0, w, h, BG_COLOR);
@@ -156,7 +161,7 @@ impl PendulumModel for ElasticPendulumModel {
         let l: f64 = l0 * (1.0 + self.x);
 
         // Coordinates of the weight
-        let angle: f64 = (90 as f64).to_radians() - self.theta;
+        let angle: f64 = 90_f64.to_radians() - self.theta;
         let x1: i32 = (x0 as f64 + l * (angle).cos()) as i32;
         let y1: i32 = (y0 as f64 + l * (angle).sin()) as i32;
 
@@ -164,12 +169,9 @@ impl PendulumModel for ElasticPendulumModel {
         draw_axis(x0, y0, x0, y0 + (l0 * 1.25) as i32);
 
         // Draw rest
-        const FIX_WIDTH: i32 = 90;
-        const FIX_HEIGHT: i32 = 25;
         draw_rest(x0, y0 - FIX_HEIGHT / 2, FIX_WIDTH, FIX_HEIGHT);
 
         // Draw spring
-        const SPRING_WIDTH: i32 = 15;
         draw_spring(x0, y0, x1, y1, 8, SPRING_WIDTH);
 
         // Draw weight

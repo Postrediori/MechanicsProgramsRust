@@ -1,8 +1,10 @@
+#![allow(clippy::cast_lossless)]
+
 use fltk::{draw, enums};
 
-use crate::draw_primitives::*;
-use crate::param_list::*;
-use crate::pendulum_model::*;
+use crate::draw_primitives::{draw_axis, draw_cord, draw_rest, draw_spring, draw_weight};
+use crate::param_list::{ParamList, Parametrized};
+use crate::pendulum_model::{ParametrizedModel, PendulumModel};
 
 const THETA1_0: f64 = 45.0;
 const THETA2_0: f64 = 30.0;
@@ -117,15 +119,18 @@ impl PendulumModel for CoupledPendulumsModel {
     }
 
     fn draw(&self, w: i32, h: i32, offs: &draw::Offscreen) {
-        offs.begin();
-
         // Geometry sizes
         const MARGIN: i32 = 20;
+        const SPRING_WIDTH: i32 = 10;
+        const FIX_WIDTH: i32 = 90;
+        const FIX_HEIGHT: i32 = 25;
 
         // Color palette
         const BG_COLOR: enums::Color = enums::Color::White;
         const BOUNDS_COLOR: enums::Color = enums::Color::Dark3;
         const TEXT_COLOR: enums::Color = enums::Color::Black;
+
+        offs.begin();
 
         // Clear background
         draw::draw_rect_fill(0, 0, w, h, BG_COLOR);
@@ -171,11 +176,11 @@ impl PendulumModel for CoupledPendulumsModel {
         draw::draw_text2(&time_str, w / 2, h - MARGIN, 0, 0, enums::Align::Center);
 
         // Coordinates of pendulums
-        let angle1: f64 = (90 as f64).to_radians() - self.theta1;
+        let angle1: f64 = 90_f64.to_radians() - self.theta1;
         let x1: i32 = (x0_1 as f64 + l * (angle1).cos()) as i32;
         let y1: i32 = (y0 as f64 + l * (angle1).sin()) as i32;
 
-        let angle2: f64 = (90 as f64).to_radians() - self.theta2;
+        let angle2: f64 = 90_f64.to_radians() - self.theta2;
         let x2: i32 = (x0_2 as f64 + l * (angle2).cos()) as i32;
         let y2: i32 = (y0 as f64 + l * (angle2).sin()) as i32;
 
@@ -185,12 +190,9 @@ impl PendulumModel for CoupledPendulumsModel {
         draw_axis(x0_2, y0, x0_2, y0 + (l * 1.25) as i32);
 
         // Draw linking spring
-        const SPRING_WIDTH: i32 = 10;
         draw_spring(x1, y1, x2, y2, 8, SPRING_WIDTH);
 
         // Draw rest
-        const FIX_WIDTH: i32 = 90;
-        const FIX_HEIGHT: i32 = 25;
         draw_rest(x0_1, y0 - FIX_HEIGHT / 2, FIX_WIDTH, FIX_HEIGHT);
         draw_rest(x0_2, y0 - FIX_HEIGHT / 2, FIX_WIDTH, FIX_HEIGHT);
 

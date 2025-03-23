@@ -1,4 +1,7 @@
-use fltk::{prelude::*, *};
+#![allow(clippy::similar_names)]
+#![allow(clippy::too_many_lines)]
+
+use fltk::{app, button, draw, enums, group, input, menu, prelude::*, window};
 
 use crate::frame_saver::FrameSaver;
 use crate::res::IconsAssets;
@@ -250,10 +253,10 @@ impl MainWindow {
         self.in_sigma.set_value(&sigma_str);
 
         let ui = self.choice_ux.find_index(&m.un_id);
-        self.choice_ux.set_value(if ui != -1 { ui } else { 0 });
+        self.choice_ux.set_value(if ui == -1 { 0 } else { ui });
 
         let pi = self.choice_px.find_index(&m.pn_id);
-        self.choice_px.set_value(if pi != -1 { pi } else { 0 });
+        self.choice_px.set_value(if pi == -1 { 0 } else { pi });
     }
 
     pub fn get_inputs(&self, m: &mut PipeModel) {
@@ -270,7 +273,7 @@ impl MainWindow {
             .label()
             .unwrap();
         m.set_initial_u(&ux);
-        println!("Type of initial conditions for velocity function: {}", ux);
+        println!("Type of initial conditions for velocity function: {ux}");
 
         let px = self
             .choice_px
@@ -279,7 +282,7 @@ impl MainWindow {
             .label()
             .unwrap();
         m.set_initial_p(&px);
-        println!("Type of initial conditions for pressure function: {}", px);
+        println!("Type of initial conditions for pressure function: {px}");
 
         match self.choice_left.value() {
             0 => {
@@ -366,7 +369,7 @@ impl MainWindow {
                     .save_frame(&data, img.width(), img.height());
             }
             Err(error) => {
-                eprintln!("Cannot capture frame to image. Error: {}", error);
+                eprintln!("Cannot capture frame to image. Error: {error}");
             }
         }
     }

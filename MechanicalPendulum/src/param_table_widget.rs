@@ -1,6 +1,8 @@
-use fltk::{prelude::*, *};
+#![allow(clippy::cast_sign_loss)]
 
-use crate::param_list::*;
+use fltk::{app, draw, enums, group, input, prelude::*, table};
+
+use crate::param_list::{ParamList, Parametrized};
 
 use std::cell::RefCell;
 use std::rc::Rc;
@@ -40,18 +42,18 @@ impl ParamTableWidgetInner {
     fn draw_cell(
         &mut self,
         ctx: table::TableContext,
-        row: i32,
-        col: i32,
-        x: i32,
-        y: i32,
-        width: i32,
-        height: i32,
+        table_pos: (i32, i32),
+        scr_pos: (i32, i32),
+        scr_size: (i32, i32),
     ) {
+        let (col, row) = table_pos;
+        let (x, y) = scr_pos;
+        let (width, height) = scr_size;
         match ctx {
             table::TableContext::StartPage => draw::set_font(enums::Font::Helvetica, 14),
             table::TableContext::ColHeader => {
                 // Column titles
-                draw_header("Value", x, y, width, height)
+                draw_header("Value", x, y, width, height);
             }
             table::TableContext::RowHeader => {
                 // Row titles
@@ -77,14 +79,14 @@ impl ParamTableWidgetInner {
                         y,
                         width,
                         height,
-                        if !self.table.active() {
-                            CellState::Deactivated
-                        } else {
+                        if self.table.active() {
                             if self.table.is_selected(row, col) {
                                 CellState::Selected
                             } else {
                                 CellState::Normal
                             }
+                        } else {
+                            CellState::Deactivated
                         },
                     );
                 }
@@ -133,10 +135,10 @@ impl ParamTableWidget {
             .draw_cell(move |_, ctx, row, col, x, y, width, height| {
                 match inner_clone.try_borrow_mut() {
                     Ok(mut inner) => {
-                        inner.draw_cell(ctx, row, col, x, y, width, height);
+                        inner.draw_cell(ctx, (col, row), (x, y), (width, height));
                     }
                     Err(error) => {
-                        eprintln!("Error in table.draw_cell: {}", error);
+                        eprintln!("Error in table.draw_cell: {error}");
                     }
                 }
             });
@@ -159,7 +161,7 @@ impl ParamTableWidget {
                     }
                 }
                 Err(error) => {
-                    eprintln!("Error in table.handle: {}", error);
+                    eprintln!("Error in table.handle: {error}");
                     false
                 }
             }
@@ -169,7 +171,7 @@ impl ParamTableWidget {
     }
 
     pub fn set_size_in_flex(&mut self, flex: &mut group::Flex, size: i32) {
-        flex.fixed(&mut self.inner.borrow_mut().table, size);
+        flex.fixed(&self.inner.borrow_mut().table, size);
     }
 
     pub fn activate(&mut self) {
@@ -215,6 +217,7 @@ fn draw_header(txt: &str, x: i32, y: i32, w: i32, h: i32) {
     draw::pop_clip();
 }
 
+#[derive(Debug, Copy, Clone)]
 enum CellState {
     Normal,
     Selected,

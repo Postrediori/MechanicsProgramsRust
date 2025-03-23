@@ -1,4 +1,11 @@
-use fltk::{prelude::*, *};
+#![allow(clippy::cast_possible_truncation)]
+#![allow(clippy::cast_lossless)]
+#![allow(clippy::cast_sign_loss)]
+#![allow(clippy::cast_precision_loss)]
+#![allow(clippy::many_single_char_names)]
+#![allow(clippy::too_many_lines)]
+
+use fltk::{draw, enums, prelude::*, widget, widget_extends};
 
 use std::cell::RefCell;
 use std::rc::Rc;
@@ -65,9 +72,7 @@ impl WaveWidget {
             }
         });
 
-        inner.handle(move |_i, ev| match ev {
-            _ => false,
-        });
+        inner.handle(move |_i, _ev| false);
 
         let frame_saver = FrameSaver::new();
 
@@ -90,6 +95,16 @@ impl WaveWidget {
     }
 
     pub fn draw_model(&mut self, m: &WaveModel) {
+        const POINT_SIZE: i32 = 2;
+        const AXIS_Y: f64 = 0.0;
+        const GRADIENT_COLOR_A: enums::Color = enums::Color::from_u32(0x00_f7_fb_ff);
+        const GRADIENT_COLOR_B: enums::Color = enums::Color::from_u32(0x00_08_30_6b);
+        const BOX_COLOR: enums::Color = enums::Color::Black;
+        const AXES_COLOR: enums::Color = enums::Color::Black;
+        const MODEL_LINES_COLOR: enums::Color = enums::Color::Black;
+        const MODEL_POINTS_COLOR: enums::Color = enums::Color::Black;
+        const TEXT_COLOR: enums::Color = enums::Color::Black;
+
         self.offs.borrow().begin();
 
         let (width, height) = (self.w(), self.h());
@@ -105,8 +120,6 @@ impl WaveWidget {
         // Clear screen
         draw::draw_rect_fill(0, 0, width, height, enums::Color::White);
 
-        const TEXT_COLOR: enums::Color = enums::Color::Black;
-
         draw::set_draw_color(TEXT_COLOR);
         draw::set_font(enums::Font::Helvetica, 16);
 
@@ -120,31 +133,12 @@ impl WaveWidget {
             enums::Align::Top,
         );
 
-        // Draw gradient heatmap (lowermost)
-        fn get_gradient(c1: enums::Color, c2: enums::Color, n: usize) -> Vec<enums::Color> {
-            let (r1, g1, b1) = c1.to_rgb();
-            let (r2, g2, b2) = c2.to_rgb();
-            let mut colors: Vec<enums::Color> = Vec::new();
-            colors.reserve(n);
-            for i in 0..n {
-                let x: f32 = (i as f32) / (n - 1) as f32;
-                let r: f32 = (r2 as f32 - r1 as f32) * x + r1 as f32;
-                let g: f32 = (g2 as f32 - g1 as f32) * x + g1 as f32;
-                let b: f32 = (b2 as f32 - b1 as f32) * x + b1 as f32;
-                let c = enums::Color::from_rgb(r as u8, g as u8, b as u8);
-                colors.push(c);
-            }
-            colors
-        }
+        // Draw gradient heatmap (lowermost layer)
+        let gradient = get_gradient(GRADIENT_COLOR_A, GRADIENT_COLOR_B, m.zn - 1);
 
-        const GRADIENT_COLOR_A: enums::Color = enums::Color::from_u32(0xf7fbff);
-        const GRADIENT_COLOR_B: enums::Color = enums::Color::from_u32(0x08306b);
-        let gradient = get_gradient(GRADIENT_COLOR_A, GRADIENT_COLOR_B, m.zn);
-
-        for j in 0..m.zn - 1 {
+        for (j, color) in gradient.iter().enumerate() {
             draw::begin_complex_polygon();
-            let color = gradient[j];
-            draw::set_draw_color(color);
+            draw::set_draw_color(*color);
             for i in 0..m.xn {
                 let idx = i * m.zn + j;
                 let p = m.points[idx];
@@ -165,8 +159,6 @@ impl WaveWidget {
         }
 
         // Draw bounding box
-        const BOX_COLOR: enums::Color = enums::Color::Black;
-
         draw::set_line_style(draw::LineStyle::Solid, 1);
         draw::set_draw_color(BOX_COLOR);
         draw::begin_loop();
@@ -178,7 +170,7 @@ impl WaveWidget {
 
         // Ticks
         let dx = (area.xmax - area.xmin) / TICKS_COUNT_X as f64;
-        for i in 0..TICKS_COUNT_X + 1 {
+        for i in 0..=TICKS_COUNT_X {
             draw::draw_yxline(
                 self.get_x(area.xmin + dx * (i as f64)) as i32,
                 self.get_y(area.ymin) as i32,
@@ -187,7 +179,7 @@ impl WaveWidget {
         }
 
         let dy = (area.ymax - area.ymin) / TICKS_COUNT_Y as f64;
-        for i in 0..TICKS_COUNT_Y + 1 {
+        for i in 0..=TICKS_COUNT_Y {
             draw::draw_xyline(
                 self.get_x(area.xmin) as i32,
                 self.get_y(area.ymin + dy * (i as f64)) as i32,
@@ -219,7 +211,7 @@ impl WaveWidget {
             enums::Align::TopRight,
         );
 
-        let ymin_str = format!("{:.2}", y_min);
+        let ymin_str = format!("{y_min:.2}");
         draw::draw_text2(
             &ymin_str,
             self.get_x(area.xmin) as i32 - TICK_SIZE - 2,
@@ -229,7 +221,7 @@ impl WaveWidget {
             enums::Align::Right,
         );
 
-        let ymax_str = format!("{:.2}", y_max);
+        let ymax_str = format!("{y_max:.2}");
         draw::draw_text2(
             &ymax_str,
             self.get_x(area.xmin) as i32 - TICK_SIZE - 2,
@@ -240,9 +232,6 @@ impl WaveWidget {
         );
 
         // Draw axes
-        const AXIS_Y: f64 = 0.0;
-        const AXES_COLOR: enums::Color = enums::Color::Black;
-
         draw::set_line_style(draw::LineStyle::DashDot, 1);
         draw::set_draw_color(AXES_COLOR);
         draw::draw_line(
@@ -257,7 +246,7 @@ impl WaveWidget {
         draw::set_draw_color(TEXT_COLOR);
         draw::set_font(enums::Font::Helvetica, 14);
 
-        let yaxis_str = format!("{:.2}", AXIS_Y);
+        let yaxis_str = format!("{AXIS_Y:.2}");
         draw::draw_text2(
             &yaxis_str,
             self.get_x(area.xmin) as i32 - TICK_SIZE - 2,
@@ -268,9 +257,6 @@ impl WaveWidget {
         );
 
         // Draw model
-        const MODEL_LINES_COLOR: enums::Color = enums::Color::Black;
-        const MODEL_POINTS_COLOR: enums::Color = enums::Color::Black;
-
         draw::set_line_style(draw::LineStyle::Solid, 1);
         draw::set_draw_color(MODEL_LINES_COLOR);
 
@@ -294,7 +280,6 @@ impl WaveWidget {
                 let x: i32 = self.get_x(p.x * scale_x + area.xmin) as i32;
                 let y: i32 = self.get_y((m.h + p.z) * scale_z + area.ymin) as i32;
 
-                const POINT_SIZE: i32 = 2;
                 draw::draw_rect_fill(
                     x - POINT_SIZE,
                     y - POINT_SIZE,
@@ -322,10 +307,19 @@ impl WaveWidget {
                     .save_frame(&data, img.width(), img.height());
             }
             Err(error) => {
-                eprintln!("Cannot capture frame to image. Error: {}", error);
+                eprintln!("Cannot capture frame to image. Error: {error}");
             }
         }
     }
 }
 
 widget_extends!(WaveWidget, widget::Widget, inner);
+
+fn get_gradient(c1: enums::Color, c2: enums::Color, n: usize) -> Vec<enums::Color> {
+    (0..n)
+        .map(|i| {
+            let x: f32 = 1.0 - (i as f32) / n as f32;
+            enums::Color::color_average(c1, c2, x)
+        })
+        .collect()
+}

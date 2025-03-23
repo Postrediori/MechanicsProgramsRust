@@ -1,6 +1,6 @@
 mod frame_saver;
 
-use fltk::{prelude::*, *};
+use fltk::{app, prelude::*};
 
 use std::cell::RefCell;
 use std::rc::Rc;
@@ -13,6 +13,15 @@ mod wave_model;
 mod wave_widget;
 
 const REDRAW_DT: u64 = 16;
+
+/// Message to control the simulation
+#[derive(Debug, Clone, Copy)]
+pub enum Message {
+    Start,
+    Stop,
+    Step,
+    Running,
+}
 
 fn main() {
     let running = false;
@@ -30,15 +39,6 @@ fn main() {
     let running = Rc::from(RefCell::from(running));
     let m = Rc::from(RefCell::from(m));
     let w = Rc::from(RefCell::from(w));
-
-    // Message to control the simulation
-    #[derive(Debug, Clone, Copy)]
-    pub enum Message {
-        Start,
-        Stop,
-        Step,
-        Running,
-    }
 
     let (tx, rx) = app::channel::<Message>();
 

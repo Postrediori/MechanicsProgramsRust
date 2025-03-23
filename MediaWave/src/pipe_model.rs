@@ -1,3 +1,5 @@
+#![allow(clippy::cast_precision_loss)]
+
 const DEFAULT_A: f64 = 1.0;
 const DEFAULT_RHO: f64 = 1.0;
 const DEFAULT_SIGMA: f64 = 0.1;
@@ -40,7 +42,7 @@ fn f_initial_u(id: &str) -> InitialFunc {
         "▄▄▄███" => |x| if x < 0.5 { -UN_1 } else { UN_1 },
         "███▄▄▄" => |x| if x < 0.5 { UN_1 } else { -UN_1 },
         _ => {
-            eprintln!("Unknown initial conditions id {}", id);
+            eprintln!("Unknown initial conditions id {id}");
             |_| UN_0
         }
     }
@@ -71,9 +73,22 @@ fn f_initial_p(id: &str) -> InitialFunc {
         "▄▄▄███" => |x| if x < 0.5 { -PN_1 } else { PN_1 },
         "███▄▄▄" => |x| if x < 0.5 { PN_1 } else { -PN_1 },
         _ => {
-            eprintln!("Unknown initial conditions id {}", id);
+            eprintln!("Unknown initial conditions id {id}");
             |_| PN_0
         }
+    }
+}
+
+/// Solve system of 2 equations with 2 variables
+fn simq2(a: [[f64; 2]; 2], b: [f64; 2]) -> Option<[f64; 2]> {
+    let delta = a[0][0] * a[1][1] - a[1][0] * a[0][1];
+    if delta == 0.0 {
+        None
+    } else {
+        Some([
+            (b[0] * a[1][1] - b[1] * a[0][1]) / delta,
+            (b[1] * a[0][0] - b[0] * a[1][0]) / delta,
+        ])
     }
 }
 
@@ -138,13 +153,13 @@ impl PipeModel {
         self.rho_a = self.rho * self.a;
         self.tau_h = self.tau / self.h;
 
-        self.x = (0..self.n + 1).map(|i| self.h * (i as f64)).collect();
+        self.x = (0..=self.n).map(|i| self.h * (i as f64)).collect();
         self.x2 = self
             .x
             .split_last()
             .unwrap()
             .1
-            .into_iter()
+            .iter()
             .map(|x| x + self.h2)
             .collect();
 
@@ -170,20 +185,7 @@ impl PipeModel {
 
     // Perform single step of the simulation
     pub fn step(&mut self) {
-        self.time = self.time + self.tau;
-
-        // Solve system of 2 equations with 2 variables
-        fn simq2(a: [[f64; 2]; 2], b: [f64; 2]) -> Option<[f64; 2]> {
-            let delta = a[0][0] * a[1][1] - a[1][0] * a[0][1];
-            if delta == 0.0 {
-                return None;
-            } else {
-                Some([
-                    (b[0] * a[1][1] - b[1] * a[0][1]) / delta,
-                    (b[1] * a[0][0] - b[0] * a[1][0]) / delta,
-                ])
-            }
-        }
+        self.time += self.tau;
 
         // Calculate conditions on the left tip
         let s = [[1.0, -1.0 / self.rho_a], [self.bl.c, self.bl.b]];
@@ -214,9 +216,8 @@ impl PipeModel {
         }
 
         for i in 0..self.n {
-            self.u1[i] = self.u1[i] - (self.p[i + 1] - self.p[i]) * self.tau_h / self.rho;
-            self.p1[i] =
-                self.p1[i] - (self.u[i + 1] - self.u[i]) * self.rho_a * self.tau_h * self.a;
+            self.u1[i] -= (self.p[i + 1] - self.p[i]) * self.tau_h / self.rho;
+            self.p1[i] -= (self.u[i + 1] - self.u[i]) * self.rho_a * self.tau_h * self.a;
         }
     }
 

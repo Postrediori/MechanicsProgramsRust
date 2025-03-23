@@ -1,4 +1,6 @@
-use fltk::{prelude::*, *};
+#![allow(clippy::too_many_lines)]
+
+use fltk::{app, button, enums, group, menu, prelude::*, valuator, window};
 
 use crate::wave_model::WaveModel;
 use crate::wave_widget::WaveWidget;

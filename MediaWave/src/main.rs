@@ -1,6 +1,6 @@
 mod frame_saver;
 
-use fltk::{prelude::*, *};
+use fltk::{app, prelude::*};
 
 use std::cell::RefCell;
 use std::rc::Rc;
@@ -19,6 +19,15 @@ const HEIGHT: i32 = 500;
 
 const REDRAW_DT: u64 = 16;
 
+/// Message to control the simulation
+#[derive(Debug, Clone, Copy)]
+pub enum Message {
+    Start,
+    Stop,
+    Step,
+    Running,
+}
+
 fn main() {
     const DEFAULT_LEN: f64 = 10.0;
     const DEFAULT_N: usize = 100;
@@ -35,15 +44,6 @@ fn main() {
 
     w.set_inputs(&model);
     w.draw_model(&model);
-
-    // Message to control the simulation
-    #[derive(Debug, Clone, Copy)]
-    pub enum Message {
-        Start,
-        Stop,
-        Step,
-        Running,
-    }
 
     let (tx, rx) = app::channel::<Message>();
 
