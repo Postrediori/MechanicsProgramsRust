@@ -6,7 +6,7 @@ use fltk::{app, button, draw, enums, group, input, menu, prelude::*, window};
 use crate::frame_saver::FrameSaver;
 use crate::res::IconsAssets;
 use crate::{
-    pipe_model::{PipeModel, BOUNDARY_OPEN, BOUNDARY_SEALED},
+    pipe_model::{BOUNDARY_OPEN, BOUNDARY_SEALED, PipeModel},
     plot_widget::PlotWidget,
 };
 

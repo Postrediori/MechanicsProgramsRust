@@ -27,7 +27,7 @@ impl ParamTableWidgetInner {
             match str.parse::<f64>() {
                 Ok(val) => self.params.set(edit_cell.0 as usize, val),
                 Err(_) => eprintln!("Not a number!"),
-            };
+            }
             self.edit_cell = None;
             self.input.hide();
 
