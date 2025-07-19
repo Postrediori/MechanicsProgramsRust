@@ -211,32 +211,27 @@ fn main() {
 
     // Callbacks
     in_max_x.set_callback({
-        let tx = tx.clone();
         move |_b| {
             tx.send(Message::UpdateArea);
         }
     });
     in_min_x.set_callback({
-        let tx = tx.clone();
         move |_b| {
             tx.send(Message::UpdateArea);
         }
     });
     in_max_y.set_callback({
-        let tx = tx.clone();
         move |_b| {
             tx.send(Message::UpdateArea);
         }
     });
     in_min_y.set_callback({
-        let tx = tx.clone();
         move |_b| {
             tx.send(Message::UpdateArea);
         }
     });
 
     btn_redraw.set_callback({
-        let tx = tx.clone();
         move |_b| {
             tx.send(Message::UpdateArea);
         }
@@ -313,7 +308,6 @@ fn main() {
                         .into_iter()
                         .map(|p| {
                             thread::spawn({
-                                let tx = tx.clone();
                                 move || {
                                     println!("Start calculation of plot {}", p.name);
 
