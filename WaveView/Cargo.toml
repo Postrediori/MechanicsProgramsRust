@@ -14,5 +14,6 @@ fltk = { version = "1", features = ["fltk-bundled"] }
 
 [dependencies]
 fltk = "1"
+fltk-theme = "0.7"
 image = "^0.24.6"
 rust-embed = "8.3"

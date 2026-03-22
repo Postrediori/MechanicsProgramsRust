@@ -24,6 +24,7 @@ use res::IconsAssets;
 use simple_pendulum::SimplePendulumModel;
 
 use fltk::{app, button, draw, enums, frame, group, prelude::*, window};
+use fltk_theme::{WidgetTheme, ThemeType};
 
 use std::cell::RefCell;
 use std::rc::Rc;
@@ -132,7 +133,9 @@ fn main() {
     let mut running: bool = false;
 
     let a = app::App::default().with_scheme(app::Scheme::Gtk);
-    app::get_system_colors();
+
+    let widget_theme = WidgetTheme::new(ThemeType::Metro);
+    widget_theme.apply();
 
     let (tx, rx) = app::channel::<Message>();
 

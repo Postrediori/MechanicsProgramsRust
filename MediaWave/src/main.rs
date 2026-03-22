@@ -1,6 +1,7 @@
 mod frame_saver;
 
 use fltk::{app, prelude::*};
+use fltk_theme::{WidgetTheme, ThemeType};
 
 use std::cell::RefCell;
 use std::rc::Rc;
@@ -36,7 +37,9 @@ fn main() {
     model.reset();
 
     let a = app::App::default();
-    app::get_system_colors();
+    
+    let widget_theme = WidgetTheme::new(ThemeType::Metro);
+    widget_theme.apply();
 
     let mut w =
         MainWindow::make_window(WIDTH, HEIGHT, "Fluid mechanics in a pipe of limited length");

@@ -1,6 +1,7 @@
 mod frame_saver;
 
 use fltk::{app, prelude::*};
+use fltk_theme::{WidgetTheme, ThemeType};
 
 use std::cell::RefCell;
 use std::rc::Rc;
@@ -30,6 +31,9 @@ fn main() {
     m.reset();
 
     let a = app::App::default();
+
+    let widget_theme = WidgetTheme::new(ThemeType::Metro);
+    widget_theme.apply();
 
     let mut w = main_window::MainWindow::make_window();
 
